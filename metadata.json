@@ -1,0 +1,7 @@
+{
+  "name": "VIET Campus Kiosk",
+  "description": "Touchscreen indoor navigation and information kiosk for Visakha Institute of Engineering and Technology main campus.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
