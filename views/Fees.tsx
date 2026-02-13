@@ -1,16 +1,14 @@
 
 import React, { useState, useMemo } from 'react';
-import { CircleDollarSign, GraduationCap, Users, Search, ChevronDown, ArrowLeft, BookOpen, School, Check } from 'lucide-react';
+import { CircleDollarSign, Users, ChevronDown, ArrowLeft, BookOpen, School, Check } from 'lucide-react';
 import { FEES } from '../data/mockData';
 import { FeeStructure } from '../types';
 import { useNavigate } from 'react-router-dom';
-import toast from 'react-hot-toast';
 
 const Fees: React.FC = () => {
   const navigate = useNavigate();
-  const [selectedCourse, setSelectedCourse] = useState<string>('B.Tech');
-  const [selectedBranch, setSelectedBranch] = useState<string>('CSE');
-  const [showResult, setShowResult] = useState<boolean>(false);
+  const [selectedCourse, setSelectedCourse] = useState<string>('');
+  const [selectedBranch, setSelectedBranch] = useState<string>('');
 
   // Memoize static list of courses
   const courses = useMemo(() => Array.from(new Set(FEES.map(f => f.course))), []);
@@ -23,29 +21,11 @@ const Fees: React.FC = () => {
   const handleCourseChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newCourse = e.target.value;
     setSelectedCourse(newCourse);
-
-    // Calculate valid branches for the new course immediately to update state in sync
-    const nextBranches = Array.from(new Set(FEES.filter(f => f.course === newCourse).map(f => f.branch)));
-    
-    // Auto-select the first branch of the new course
-    if (nextBranches.length > 0) {
-      setSelectedBranch(nextBranches[0]);
-    } else {
-      setSelectedBranch('');
-    }
-    
-    // Reset result view
-    setShowResult(false);
+    setSelectedBranch(''); // Reset branch selection when course changes
   };
 
   const handleBranchChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
       setSelectedBranch(e.target.value);
-      setShowResult(false);
-  }
-
-  const handleSearch = () => {
-      setShowResult(true);
-      toast.success("Details fetched!");
   }
 
   const feeData: FeeStructure | undefined = FEES.find(
@@ -88,19 +68,20 @@ const Fees: React.FC = () => {
       {/* Main Content Container - Vertical Flex */}
       <div className="relative z-10 flex-1 min-h-0 flex flex-col items-center p-4 pb-20 w-full max-w-4xl mx-auto gap-4">
           
-          {/* Top: Search Panel */}
+          {/* Top: Selection Panel */}
           <div className="w-full bg-white rounded-3xl p-6 shadow-xl animate-in slide-in-from-top-4 duration-500 flex-none">
-              <div className="flex flex-col md:flex-row gap-4 items-end">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   
                   {/* Course Select */}
-                  <div className="flex-1 w-full">
+                  <div className="w-full">
                       <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 pl-1">Select Course</label>
                       <div className="relative">
                           <select
                               value={selectedCourse}
                               onChange={handleCourseChange}
-                              className="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-900 text-lg rounded-xl px-4 py-3 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 font-bold transition-all"
+                              className="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-900 text-lg rounded-xl px-4 py-3 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 font-bold transition-all cursor-pointer hover:bg-slate-100 placeholder-slate-400"
                           >
+                              <option value="" disabled>Choose a course...</option>
                               {courses.map(c => <option key={c} value={c}>{c}</option>)}
                           </select>
                           <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={20} />
@@ -108,34 +89,29 @@ const Fees: React.FC = () => {
                   </div>
 
                   {/* Branch Select */}
-                  <div className="flex-1 w-full">
+                  <div className="w-full">
                       <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 pl-1">Select Branch</label>
                       <div className="relative">
                           <select
                               value={selectedBranch}
                               onChange={handleBranchChange}
-                              className="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-900 text-lg rounded-xl px-4 py-3 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 font-bold transition-all"
+                              disabled={!selectedCourse}
+                              className={`w-full appearance-none bg-slate-50 border border-slate-200 text-slate-900 text-lg rounded-xl px-4 py-3 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 font-bold transition-all cursor-pointer hover:bg-slate-100 ${!selectedCourse ? 'opacity-50 cursor-not-allowed' : ''}`}
                           >
+                              <option value="" disabled>Choose a branch...</option>
                               {branches.map(b => <option key={b} value={b}>{b}</option>)}
                           </select>
                           <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={20} />
                       </div>
                   </div>
 
-                  {/* Check Button */}
-                  <button 
-                      onClick={handleSearch}
-                      className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white text-lg font-bold px-8 py-3 rounded-xl shadow-lg shadow-blue-600/30 active:scale-95 transition-all flex items-center justify-center gap-2"
-                  >
-                      <Search size={20} /> Check
-                  </button>
               </div>
           </div>
 
           {/* Bottom: Results Panel */}
           <div className="w-full flex-1 min-h-0 bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/20 animate-in slide-in-from-bottom-8 duration-500 relative flex flex-col">
-              {showResult && feeData ? (
-                  <div className="flex-1 overflow-y-auto p-6 md:p-8">
+              {feeData ? (
+                  <div className="flex-1 overflow-y-auto p-6 md:p-8 animate-in fade-in duration-300">
                       
                       {/* Result Header */}
                       <div className="flex justify-between items-start mb-6">
@@ -146,7 +122,7 @@ const Fees: React.FC = () => {
                             </div>
                             <h2 className="text-3xl font-black text-slate-900">{feeData.description || `${feeData.course} - ${feeData.branch}`}</h2>
                         </div>
-                        <div className="bg-green-100 text-green-700 p-2 rounded-full">
+                        <div className="bg-green-100 text-green-700 p-2 rounded-full shadow-sm">
                             <Check size={24} />
                         </div>
                       </div>
