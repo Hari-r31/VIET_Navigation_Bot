@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, MapPin, Navigation, Clock, Footprints, Mic, ChevronRight, RotateCcw, ArrowLeft, ArrowRight, Building, Briefcase, GraduationCap, Coffee, Home, X } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -79,7 +79,14 @@ const Directions: React.FC = () => {
       if (matches.length > 0) {
           // Optional: Auto-select if perfect match?
           // For now, let's just show results to allow user confirmation
-          toast.success(`Found: ${text}`);
+          // But if it's very clear, we could auto-select.
+          // Let's stick to showing results to be safe, unless user said exact name.
+          if (matches[0].name.toLowerCase() === text.toLowerCase()) {
+              handleSelectLocation(matches[0]);
+              toast.success(`Navigating to ${matches[0].name}`);
+          } else {
+              toast.success(`Found: ${text}`);
+          }
       } else {
           toast.error("Could not find that location.");
       }
@@ -196,298 +203,317 @@ const Directions: React.FC = () => {
         {/* Department Filter Input */}
         <div className="relative max-w-lg mx-auto animate-in fade-in duration-300">
            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-           <input
+           <input 
              type="text"
              value={deptFilter}
              onChange={(e) => setDeptFilter(e.target.value)}
-             placeholder="Search department (e.g., CSE, Mech)..."
-             className="w-full pl-12 pr-12 py-4 rounded-xl border border-slate-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
+             placeholder="Find department (e.g. Computer Science)..."
+             className="w-full pl-12 pr-10 py-3 bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all placeholder:text-slate-400 font-medium"
+             autoFocus
            />
+           {deptFilter && (
+             <button 
+                onClick={() => setDeptFilter('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+             >
+               <X size={18} />
+             </button>
+           )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredDepts.map(code => (
-                <button 
-                    key={code}
-                    onClick={() => setNavState({...navState, department: code})}
-                    className="p-4 bg-white border border-slate-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all text-left flex items-center justify-between group"
-                >
-                    <div>
-                        <span className="font-bold text-lg text-slate-800">{code}</span>
-                        <span className="block text-xs text-slate-500">{DEPT_FULL_NAMES[code] || code} Department</span>
-                    </div>
-                    <ChevronRight className="text-slate-300 group-hover:text-blue-500" />
-                </button>
-            ))}
-            {filteredDepts.length === 0 && (
-                <div className="col-span-2 text-center text-slate-400 py-8">
-                    No departments found matching "{deptFilter}"
-                </div>
-            )}
+        {/* Departments Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-in slide-in-from-right-4 duration-500">
+           {filteredDepts.length > 0 ? filteredDepts.map(dept => (
+             <button 
+               key={dept} 
+               onClick={() => setNavState({...navState, department: dept})}
+               className="bg-white/95 backdrop-blur-sm p-6 rounded-2xl shadow-lg border hover:border-blue-500 text-center flex flex-col items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95"
+             >
+               <div className="bg-blue-50 p-3 rounded-full text-blue-600 font-bold">{dept[0]}</div>
+               <span className="font-bold text-slate-900">{dept} Dept</span>
+               {DEPT_FULL_NAMES[dept] && (
+                 <span className="text-xs text-slate-500 line-clamp-1">{DEPT_FULL_NAMES[dept]}</span>
+               )}
+             </button>
+           )) : (
+             <div className="col-span-full text-center py-8 text-slate-500">
+               <div className="inline-block p-4 bg-slate-100 rounded-full mb-2">
+                 <Search size={24} className="opacity-50"/>
+               </div>
+               <p>No departments match "{deptFilter}"</p>
+             </div>
+           )}
         </div>
       </div>
     );
   };
 
-  // 4. Location List
+  // 4. Final Location List
   const renderLocationList = (locations: LocationData[]) => (
-    <div className="grid grid-cols-1 gap-4 animate-in slide-in-from-bottom-8 duration-500">
-      {locations.map(loc => (
-        <button
-          key={loc.id}
-          onClick={() => handleSelectLocation(loc)}
-          className="bg-white p-5 rounded-xl shadow-sm border border-slate-200 hover:border-blue-500 hover:shadow-md transition-all flex justify-between items-center group text-left"
-        >
-          <div className="flex items-start gap-4">
-             <div className="bg-slate-100 p-3 rounded-lg text-slate-500 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
-                <MapPin size={24} />
-             </div>
-             <div>
-                <h4 className="text-lg font-bold text-slate-900 leading-tight">{loc.name}</h4>
-                <div className="flex items-center gap-3 mt-1.5 text-sm text-slate-500">
-                    <span className="flex items-center gap-1"><Building size={14}/> {loc.block}</span>
-                    <span className="flex items-center gap-1"><Navigation size={14}/> {loc.floor}</span>
-                </div>
-             </div>
-          </div>
-          <div className="flex flex-col items-end gap-1">
-             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{loc.distance}m</span>
-             <ChevronRight className="text-slate-300 group-hover:text-blue-500 transition-colors" />
-          </div>
-        </button>
-      ))}
-      {locations.length === 0 && (
-          <div className="text-center py-12 text-slate-400">
-              <Footprints size={48} className="mx-auto mb-3 opacity-30" />
-              <p>No locations found in this category.</p>
-          </div>
+    <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200 overflow-hidden animate-in slide-in-from-bottom-8">
+      {locations.length === 0 ? (
+        <div className="p-8 text-center text-slate-500">No locations found in this category.</div>
+      ) : (
+        <div className="divide-y divide-slate-100 max-h-[50vh] overflow-y-auto">
+          {locations.map(loc => (
+            <button
+              key={loc.id}
+              onClick={() => handleSelectLocation(loc)}
+              className="w-full text-left p-4 hover:bg-blue-50 flex items-center justify-between group transition-colors"
+            >
+               <div>
+                  <div className="font-bold text-slate-800">{loc.name}</div>
+                  <div className="text-xs text-slate-500">{loc.floor}</div>
+               </div>
+               <ChevronRight size={20} className="text-slate-300 group-hover:text-blue-600" />
+            </button>
+          ))}
+        </div>
       )}
     </div>
   );
 
-  // 5. Selected Route Details
-  const renderRouteDetails = (loc: LocationData) => {
-    // Generate Mobile URL
-    const mobileUrl = `${window.location.origin}/#/mobile/directions?id=${loc.id}`;
-
-    return (
-      <div className="h-full flex flex-col md:flex-row gap-6 animate-in zoom-in-95 duration-300">
-        
-        {/* Left: Map & Instructions */}
-        <div className="flex-1 flex flex-col bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-200">
-            {/* Header */}
-            <div className="bg-slate-900 text-white p-6 flex justify-between items-start shrink-0">
-                <div>
-                   <h2 className="text-3xl font-bold leading-tight">{loc.name}</h2>
-                   <p className="text-blue-200 mt-1 flex items-center gap-2">
-                      <MapPin size={16} /> {loc.block}, {loc.floor}
-                   </p>
-                </div>
-                <button onClick={clearRoute} className="bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors">
-                    <X size={24} />
-                </button>
-            </div>
-
-            {/* Map Area */}
-            <div className="aspect-video bg-slate-100 relative group overflow-hidden shrink-0 border-b border-slate-200">
-                {loc.mapImage ? (
-                    <img src={loc.mapImage} alt="Map" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-400">Map Unavailable</div>
-                )}
-                <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-lg text-xs font-bold shadow-sm">
-                    {loc.estimatedTime} min walk
-                </div>
-            </div>
-
-            {/* Steps List */}
-            <div className="flex-1 overflow-y-auto p-6 bg-slate-50">
-                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Navigation Steps</h3>
-                <div className="space-y-6 relative pl-2">
-                    {/* Line */}
-                    <div className="absolute left-[19px] top-2 bottom-4 w-0.5 bg-slate-200"></div>
-
-                    {loc.steps.map((step, idx) => (
-                        <div key={idx} className="relative flex gap-4">
-                            <div className="w-10 h-10 rounded-full bg-white border-2 border-blue-500 text-blue-600 flex items-center justify-center font-bold text-sm shadow-sm relative z-10 shrink-0">
-                                {idx + 1}
-                            </div>
-                            <div className="pt-2">
-                                <p className="text-lg font-bold text-slate-800">{step.instruction}</p>
-                                {step.detail && <p className="text-slate-500 text-sm mt-1">{step.detail}</p>}
-                            </div>
-                        </div>
-                    ))}
-                    
-                    <div className="relative flex gap-4 pt-2">
-                        <div className="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center shadow-md relative z-10 shrink-0">
-                            <MapPin size={20} fill="currentColor" />
-                        </div>
-                        <div className="pt-2">
-                             <p className="text-lg font-bold text-green-700">You have arrived</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {/* Right: Quick Actions (Mobile Transfer) */}
-        <div className="w-full md:w-80 flex flex-col gap-4 shrink-0">
-            <div className="bg-blue-600 rounded-3xl p-6 text-white shadow-xl shadow-blue-200 relative overflow-hidden">
-                <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
-                <h3 className="text-xl font-bold mb-2">Take it with you</h3>
-                <p className="text-blue-100 text-sm mb-6">Scan to get these directions on your phone.</p>
-                
-                <div className="bg-white p-4 rounded-2xl w-fit mx-auto shadow-inner">
-                    <QRCodeSVG value={mobileUrl} size={140} />
-                </div>
-                <p className="text-center text-xs text-blue-200 mt-4 font-medium">No app required</p>
-            </div>
-
-            <div className="bg-white rounded-3xl p-6 shadow-lg border border-slate-200 flex-1 flex flex-col justify-center gap-4">
-                <div className="text-center">
-                    <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">Estimated Time</span>
-                    <p className="text-3xl font-black text-slate-900">{loc.estimatedTime} min</p>
-                </div>
-                <div className="w-full h-px bg-slate-100"></div>
-                <div className="text-center">
-                    <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">Total Distance</span>
-                    <p className="text-3xl font-black text-slate-900">{loc.distance} m</p>
-                </div>
-            </div>
-
-            <button 
-                onClick={clearRoute} 
-                className="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-4 rounded-2xl transition-colors flex items-center justify-center gap-2"
-            >
-                <RotateCcw size={20} /> Start New Search
-            </button>
-        </div>
-      </div>
-    );
-  };
+  // Breadcrumbs
+  const renderBreadcrumbs = () => (
+    <div className="flex items-center gap-2 mb-4 text-sm font-semibold text-slate-600 bg-white/80 backdrop-blur-sm w-fit px-4 py-2 rounded-full shadow-sm">
+      <button onClick={resetNavigation} className="hover:text-blue-600 flex items-center gap-1"><Home size={14}/> Campus</button>
+      {navState.block && (
+        <>
+          <ChevronRight size={14} />
+          <button onClick={() => setNavState({block: navState.block})} className="hover:text-blue-600">{navState.block}</button>
+        </>
+      )}
+      {navState.category && (
+        <>
+          <ChevronRight size={14} />
+          <button onClick={() => setNavState({block: navState.block, category: navState.category})} className="hover:text-blue-600 capitalize">{navState.category}</button>
+        </>
+      )}
+      {navState.department && (
+        <>
+          <ChevronRight size={14} />
+          <span className="text-blue-600">{navState.department}</span>
+        </>
+      )}
+    </div>
+  );
 
   return (
-    <div className="flex flex-col h-full relative">
-       {/* Voice Modal Component */}
-       <VoiceSearchModal 
+    <div className="h-full flex flex-col relative overflow-hidden">
+      
+      {/* Voice Modal Integration */}
+      <VoiceSearchModal 
            isOpen={showVoiceModal} 
            onClose={() => setShowVoiceModal(false)} 
            onResult={handleVoiceResult} 
-       />
+      />
 
-       {/* Top Search Bar - Hidden if route selected */}
-       {!selectedRoute && (
-         <div className="bg-white p-4 shadow-sm border-b border-slate-200 z-10 shrink-0 sticky top-0">
-            <div className="relative max-w-2xl mx-auto">
-               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={24} />
-               <input 
-                  type="text" 
-                  value={query}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  placeholder="Search for classrooms, labs, or amenities..."
-                  className="w-full pl-14 pr-14 py-4 bg-slate-100 border-transparent focus:bg-white border focus:border-blue-500 rounded-2xl focus:outline-none transition-all text-xl shadow-inner placeholder:text-slate-400"
-               />
-               <button 
-                 onClick={() => setShowVoiceModal(true)}
-                 className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
-                 title="Voice Search"
-               >
-                 <Mic size={24} />
-               </button>
-            </div>
-         </div>
-       )}
+      {/* Background Image - Aerial View Placeholder */}
+      <div className="absolute inset-0 z-0">
+          <img 
+            src="https://placehold.co/1920x1080/1e293b/475569?text=VIET+Campus+Aerial+View" 
+            alt="Campus Background" 
+            className="w-full h-full object-cover opacity-100"
+          />
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-[2px]"></div>
+      </div>
 
-       {/* Main Content Area */}
-       <div className="flex-1 overflow-y-auto p-4 relative bg-slate-50/50">
-          
-          {selectedRoute ? (
-             renderRouteDetails(selectedRoute)
-          ) : query ? (
-             /* Search Results Mode */
-             <div className="max-w-4xl mx-auto pt-4">
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Search Results</h2>
-                    <button onClick={() => setQuery('')} className="text-blue-600 text-sm font-medium hover:underline">Clear Search</button>
-                </div>
-                {renderLocationList(searchResults)}
-             </div>
-          ) : (
-             /* Browsing Mode */
-             <div className="max-w-5xl mx-auto h-full flex flex-col">
-                
-                {/* Breadcrumb Header */}
-                <div className="flex items-center gap-2 mb-6 text-slate-500 text-sm font-medium">
-                    <button onClick={resetNavigation} className="hover:text-blue-600 flex items-center gap-1">
-                        <Home size={16} /> Campus
+      <div className="relative z-10 h-full flex flex-col gap-4 p-4">
+        {/* Header Navigation - Keep standard back button */}
+        <div className="flex-none flex justify-between items-center">
+            <button 
+                onClick={() => navigate('/')} 
+                className="flex items-center gap-2 bg-white/90 backdrop-blur text-slate-900 px-5 py-2.5 rounded-xl shadow-lg border-white/20 hover:bg-white font-bold transition-all group"
+            >
+                <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+                Back to Home
+            </button>
+        </div>
+
+        {/* Search Bar - Show ONLY if !selectedRoute */}
+        {!selectedRoute && (
+            <div className="w-full max-w-3xl mx-auto relative z-20">
+                <div className="relative flex gap-2 shadow-2xl rounded-2xl">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={24} />
+                        <input
+                            type="text"
+                            value={query}
+                            onChange={(e) => handleSearch(e.target.value)}
+                            placeholder="Search for anything (e.g., Principal, CSE HOD, Library)"
+                            className="w-full pl-16 pr-4 py-5 bg-white text-slate-900 rounded-2xl focus:ring-4 focus:ring-blue-500/50 focus:outline-none text-xl font-medium shadow-inner transition-colors"
+                        />
+                    </div>
+                    <button
+                        onClick={() => setShowVoiceModal(true)}
+                        className="px-6 rounded-2xl transition-colors flex items-center justify-center bg-blue-600 text-white hover:bg-blue-700"
+                    >
+                        <Mic size={28} />
                     </button>
-                    {navState.block && (
-                        <>
-                           <ChevronRight size={14} />
-                           <button onClick={() => setNavState({...navState, category: undefined, department: undefined})} className="hover:text-blue-600">
-                               {navState.block}
-                           </button>
-                        </>
-                    )}
-                    {navState.category && (
-                        <>
-                           <ChevronRight size={14} />
-                           <span className="text-slate-900 capitalize">{navState.category}</span>
-                        </>
+                </div>
+                
+                {/* Live Search Results Dropdown */}
+                {query.trim() !== '' && (
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[60vh] overflow-y-auto border border-slate-200">
+                        {searchResults.length === 0 ? (
+                            <div className="p-6 text-center text-slate-500 flex flex-col items-center">
+                                <MapPin size={32} className="mb-2 opacity-50"/>
+                                No matches found.
+                            </div>
+                        ) : (
+                            searchResults.map(loc => (
+                                <button
+                                    key={loc.id}
+                                    onClick={() => handleSelectLocation(loc)}
+                                    className="w-full text-left p-4 hover:bg-slate-50 border-b border-slate-100 last:border-0 flex justify-between items-center group"
+                                >
+                                    <div>
+                                        <div className="font-bold text-lg text-slate-800">{loc.name}</div>
+                                        <div className="text-sm text-slate-500">{loc.block} • {loc.floor}</div>
+                                    </div>
+                                    <ArrowRight size={20} className="text-slate-300 group-hover:text-blue-600"/>
+                                </button>
+                            ))
+                        )}
+                    </div>
+                )}
+            </div>
+        )}
+
+        {/* Content Area - Adjusted Flex Behavior for Full Fit */}
+        <div className={`flex-1 min-h-0 flex justify-center ${selectedRoute ? 'items-stretch pb-2' : 'items-start pt-8 pb-20'} overflow-hidden`}>
+            {selectedRoute ? (
+                // --- SHOW FULL SCREEN ROUTE DETAILS ---
+                <div className="w-full h-full max-w-6xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
+                    {/* Header: Title + New Search */}
+                    <div className="bg-slate-50 border-b border-slate-200 p-4 md:p-5 flex justify-between items-center flex-none">
+                        <div>
+                            <div className="text-blue-600 font-bold uppercase tracking-wider text-xs mb-1 flex items-center gap-1">
+                                <Navigation size={14}/> Route Active
+                            </div>
+                            <h2 className="text-3xl font-black text-slate-900">{selectedRoute.name}</h2>
+                            <p className="text-slate-500 font-medium">{selectedRoute.block}, {selectedRoute.floor}</p>
+                        </div>
+                        <button onClick={clearRoute} className="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition-colors">
+                            <RotateCcw size={18} /> New Search
+                        </button>
+                    </div>
+
+                    <div className="flex-1 flex flex-col md:flex-row min-h-0 relative">
+                        {/* LEFT: Map (Flexible) + Stats (Fixed height at bottom) */}
+                        <div className="flex-1 flex flex-col relative min-h-0">
+                            {/* Map fills available space */}
+                             <div className="flex-1 relative bg-slate-900 overflow-hidden group">
+                                {selectedRoute.mapImage ? (
+                                    <img src={selectedRoute.mapImage} className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-700" alt="Map" />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-slate-500">
+                                        <MapPin size={48} className="opacity-20"/>
+                                    </div>
+                                )}
+                                <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur px-4 py-2 rounded-lg font-bold text-slate-900 shadow-lg flex items-center gap-2">
+                                    <MapPin size={18} className="text-red-500"/> Location Map
+                                </div>
+                            </div>
+                            
+                            {/* Stats Bar */}
+                            <div className="h-auto p-4 border-t border-slate-200 bg-white grid grid-cols-2 gap-4 flex-none z-10">
+                                <div className="bg-blue-50 p-3 rounded-xl border border-blue-100">
+                                    <div className="text-blue-600 text-xs font-bold uppercase mb-1 flex items-center gap-1"><Footprints size={14}/> Distance</div>
+                                    <div className="text-2xl font-black text-slate-900">{selectedRoute.distance} m</div>
+                                </div>
+                                <div className="bg-emerald-50 p-3 rounded-xl border border-emerald-100">
+                                    <div className="text-emerald-600 text-xs font-bold uppercase mb-1 flex items-center gap-1"><Clock size={14}/> Est. Time</div>
+                                    <div className="text-2xl font-black text-slate-900">{selectedRoute.estimatedTime} min</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* RIGHT: Steps + QR */}
+                        <div className="w-full md:w-96 bg-slate-50/50 border-l border-slate-200 flex flex-col h-full min-h-0">
+                            {/* Steps List - Scrollable */}
+                            <div className="flex-1 p-5 overflow-y-auto">
+                                <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2">
+                                    <Footprints size={18} className="text-slate-400"/> Turn-by-Turn Directions
+                                </h3>
+                                <div className="space-y-6 relative before:absolute before:left-[15px] before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-300">
+                                    {selectedRoute.steps.map((step, idx) => (
+                                        <div key={idx} className="relative flex gap-4">
+                                            <div className="relative z-10 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-md ring-4 ring-slate-50">
+                                                {idx + 1}
+                                            </div>
+                                            <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex-1">
+                                                <p className="font-bold text-slate-900 text-lg leading-tight">{step.instruction}</p>
+                                                {step.detail && <p className="text-sm text-slate-500 mt-2 leading-relaxed">{step.detail}</p>}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    
+                                    {/* Destination Marker */}
+                                    <div className="relative flex gap-4">
+                                        <div className="relative z-10 w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center font-bold text-sm shadow-md ring-4 ring-slate-50">
+                                            <MapPin size={16} fill="currentColor"/>
+                                        </div>
+                                        <div className="py-1">
+                                            <p className="font-bold text-green-700">You have arrived</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* QR Code - Fixed at bottom */}
+                            <div className="flex-none p-5 border-t border-slate-200 bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20">
+                                <div className="bg-slate-900 text-white p-4 rounded-xl flex items-center gap-4 shadow-lg">
+                                    <div className="bg-white p-1.5 rounded-lg flex-shrink-0">
+                                        <QRCodeSVG 
+                                            value={`${window.location.href.split('#')[0]}#/mobile/directions?id=${selectedRoute.id}`} 
+                                            size={80} 
+                                        />
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="font-bold text-base text-yellow-400">Scan to Go</p>
+                                        <p className="text-xs text-slate-300 leading-tight mt-1">Get these directions on your phone instantly.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            ) : (
+                // --- SHOW HIERARCHY BROWSER ---
+                <div className="w-full max-w-5xl mx-auto">
+                    {/* Breadcrumbs */}
+                    {(navState.block || navState.category) && renderBreadcrumbs()}
+
+                    {!navState.block ? (
+                        // View 1: Block Select
+                        <div>
+                             <h2 className="text-white text-3xl font-bold mb-6 text-center shadow-black drop-shadow-md">Select a Block</h2>
+                             {renderBlockSelection()}
+                        </div>
+                    ) : !navState.category && navState.block === 'Main Campus' ? (
+                        // View 2: Category Select (Main Campus)
+                        <div>
+                            <h2 className="text-white text-3xl font-bold mb-6 text-center drop-shadow-md">What are you looking for?</h2>
+                            {renderCategorySelection()}
+                        </div>
+                    ) : navState.category === 'academic' && !navState.department ? (
+                         // View 3: Dept Select
+                         <div>
+                            <h2 className="text-white text-3xl font-bold mb-6 text-center drop-shadow-md">Select Department</h2>
+                            {renderDeptSelection()}
+                        </div>
+                    ) : (
+                         // View 4: Final List
+                         <div>
+                            <h2 className="text-white text-3xl font-bold mb-6 text-center drop-shadow-md">Select Destination</h2>
+                            {renderLocationList(getFilteredLocations())}
+                        </div>
                     )}
                 </div>
-
-                {/* Content Logic */}
-                {!navState.block ? (
-                    <>
-                       <div className="mb-8">
-                          <h2 className="text-3xl font-black text-slate-900 mb-2">Where do you want to go?</h2>
-                          <p className="text-slate-500 text-lg">Select a building or block to start exploring.</p>
-                       </div>
-                       {renderBlockSelection()}
-                    </>
-                ) : (
-                    <>
-                       {!navState.category && !navState.department ? (
-                           <>
-                             <div className="mb-8 flex items-end justify-between">
-                                <div>
-                                    <h2 className="text-3xl font-black text-slate-900 mb-2">{navState.block}</h2>
-                                    <p className="text-slate-500 text-lg">What are you looking for in this block?</p>
-                                </div>
-                                <button onClick={() => setNavState({})} className="text-blue-600 font-bold flex items-center gap-1 bg-blue-50 px-4 py-2 rounded-lg hover:bg-blue-100 transition-colors">
-                                    <ArrowLeft size={18} /> Back
-                                </button>
-                             </div>
-                             {renderCategorySelection()}
-                           </>
-                       ) : (
-                           <div className="h-full flex flex-col">
-                               <div className="mb-6 flex items-center justify-between">
-                                   <h2 className="text-2xl font-bold text-slate-900 capitalize flex items-center gap-2">
-                                       {navState.department ? `${navState.department} Department` : navState.category}
-                                   </h2>
-                                   <button 
-                                      onClick={() => navState.department ? setNavState({...navState, department: undefined}) : setNavState({...navState, category: undefined})} 
-                                      className="text-slate-500 hover:text-slate-900 flex items-center gap-1"
-                                   >
-                                       <ArrowLeft size={18} /> Back
-                                   </button>
-                               </div>
-
-                               {navState.category === 'academic' && !navState.department ? (
-                                   renderDeptSelection()
-                               ) : (
-                                   renderLocationList(getFilteredLocations())
-                               )}
-                           </div>
-                       )}
-                    </>
-                )}
-             </div>
-          )}
-       </div>
+            )}
+        </div>
+      </div>
     </div>
   );
 };
