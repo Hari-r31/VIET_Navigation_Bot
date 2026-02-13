@@ -287,18 +287,58 @@ export const LOCATIONS: LocationData[] = [
 ];
 
 export const FEES: FeeStructure[] = [
-  // B.Tech
-  { id: 'bt-cse', course: 'B.Tech', branch: 'CSE', seats: 125, annualFee: 120000 },
-  { id: 'bt-ece', course: 'B.Tech', branch: 'ECE', seats: 90, annualFee: 80000 },
-  { id: 'bt-eee', course: 'B.Tech', branch: 'EEE', seats: 65, annualFee: 70000 },
-  { id: 'bt-mech', course: 'B.Tech', branch: 'MECH', seats: 50, annualFee: 70000 },
-  { id: 'bt-civil', course: 'B.Tech', branch: 'CIVIL', seats: 60, annualFee: 65000 },
-  // M.Tech
-  { id: 'mt-cse', course: 'M.Tech', branch: 'CSE', seats: 18, annualFee: 60000 },
-  { id: 'mt-vlsi', course: 'M.Tech', branch: 'VLSI', seats: 18, annualFee: 60000 },
-  { id: 'mt-ps', course: 'M.Tech', branch: 'Power Systems', seats: 18, annualFee: 60000 },
-  // MBA & Diploma
-  { id: 'mba-gen', course: 'MBA', branch: 'General', seats: 60, annualFee: 50000 },
-  { id: 'dip-ece', course: 'Diploma', branch: 'ECE', seats: 60, annualFee: 27000 },
-  { id: 'dip-mech', course: 'Diploma', branch: 'MECH', seats: 60, annualFee: 27000 },
+
+  // ================================
+  // B.TECH (AP EAPCET - 2025)
+  // ================================
+  { id: 'bt-civil', course: 'B.Tech', branch: 'CIVIL', seats: 60, annualFee: 43000 },
+  { id: 'bt-cse', course: 'B.Tech', branch: 'CSE', seats: 240, annualFee: 43000 },
+  { id: 'bt-cse-aiml', course: 'B.Tech', branch: 'CSE – AI & ML', seats: 60, annualFee: 43000 },
+  { id: 'bt-cse-ds', course: 'B.Tech', branch: 'CSE – DATA SCIENCE', seats: 60, annualFee: 43000 },
+  { id: 'bt-cse-cyber', course: 'B.Tech', branch: 'CSE – CYBER SECURITY', seats: 60, annualFee: 43000 },
+  { id: 'bt-ece', course: 'B.Tech', branch: 'ECE', seats: 180, annualFee: 43000 },
+  { id: 'bt-eee', course: 'B.Tech', branch: 'EEE', seats: 60, annualFee: 43000 },
+  { id: 'bt-mech', course: 'B.Tech', branch: 'MECHANICAL ENGINEERING', seats: 150, annualFee: 43000 },
+
+  // ================================
+  // B.TECH LATERAL ENTRY (AP ECET - 2025)
+  // ================================
+  { id: 'btle-civil', course: 'B.Tech Lateral Entry', branch: 'CIVIL', seats: 61, annualFee: 43000 },
+  { id: 'btle-cse', course: 'B.Tech Lateral Entry', branch: 'CSE', seats: 112, annualFee: 43000 },
+  { id: 'btle-cse-aiml', course: 'B.Tech Lateral Entry', branch: 'CSE – AI & ML', seats: 17, annualFee: 43000 },
+  { id: 'btle-cse-ds', course: 'B.Tech Lateral Entry', branch: 'CSE – DATA SCIENCE', seats: 33, annualFee: 43000 },
+  { id: 'btle-cse-cyber', course: 'B.Tech Lateral Entry', branch: 'CSE – CYBER SECURITY', seats: 32, annualFee: 43000 },
+  { id: 'btle-ece', course: 'B.Tech Lateral Entry', branch: 'ECE', seats: 121, annualFee: 43000 },
+  { id: 'btle-eee', course: 'B.Tech Lateral Entry', branch: 'EEE', seats: 58, annualFee: 43000 },
+  { id: 'btle-mech', course: 'B.Tech Lateral Entry', branch: 'MECHANICAL ENGINEERING', seats: 154, annualFee: 43000 },
+
+  // ================================
+  // M.TECH (PGECET - 2025)
+  // ================================
+  { id: 'mt-cadcam', course: 'M.Tech', branch: 'CAD / CAM', seats: 18, annualFee: 50000 },
+  { id: 'mt-cse', course: 'M.Tech', branch: 'CSE', seats: 18, annualFee: 50000 },
+  { id: 'mt-ps', course: 'M.Tech', branch: 'POWER SYSTEMS', seats: 18, annualFee: 50000 },
+  { id: 'mt-struct', course: 'M.Tech', branch: 'STRUCTURAL ENGINEERING', seats: 36, annualFee: 50000 },
+  { id: 'mt-vlsi', course: 'M.Tech', branch: 'VLSI', seats: 18, annualFee: 50000 },
+  { id: 'mt-thermal', course: 'M.Tech', branch: 'THERMAL ENGINEERING', seats: 18, annualFee: 50000 },
+
+  // ================================
+  // MBA (ICET - 2025)
+  // ================================
+  { id: 'mba-hr', course: 'MBA', branch: 'HR', seats: 30, annualFee: 35000 },
+  { id: 'mba-fin', course: 'MBA', branch: 'FINANCE', seats: 30, annualFee: 35000 },
+  { id: 'mba-mkt', course: 'MBA', branch: 'MARKETING', seats: 30, annualFee: 35000 },
+  { id: 'mba-log', course: 'MBA', branch: 'LOGISTICS & SUPPLY CHAIN MANAGEMENT', seats: 30, annualFee: 35000 },
+  { id: 'mba-health', course: 'MBA', branch: 'HEALTH CARE & HOSPITAL MANAGEMENT', seats: 30, annualFee: 35000 },
+  { id: 'mba-ba', course: 'MBA', branch: 'BUSINESS ANALYTICS / SYSTEMS', seats: 30, annualFee: 35000 },
+
+  // ================================
+  // DIPLOMA (Randomized as Requested)
+  // ================================
+  { id: 'dip-ece', course: 'Diploma', branch: 'ECE', seats: 60, annualFee: 25000 },
+  { id: 'dip-civil', course: 'Diploma', branch: 'CIVIL', seats: 60, annualFee: 23000 },
+  { id: 'dip-cme', course: 'Diploma', branch: 'CME', seats: 60, annualFee: 26000 },
+  { id: 'dip-mech', course: 'Diploma', branch: 'MECH', seats: 60, annualFee: 24000 },
+  { id: 'dip-it', course: 'Diploma', branch: 'IT', seats: 60, annualFee: 22000 },
+
 ];
