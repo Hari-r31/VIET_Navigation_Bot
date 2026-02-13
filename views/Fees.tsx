@@ -1,14 +1,28 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { CircleDollarSign, Users, ChevronDown, ArrowLeft, BookOpen, School, Check } from 'lucide-react';
 import { FEES } from '../data/mockData';
 import { FeeStructure } from '../types';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Fees: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [selectedCourse, setSelectedCourse] = useState<string>('');
   const [selectedBranch, setSelectedBranch] = useState<string>('');
+
+  // Handle incoming state from Assistant
+  useEffect(() => {
+    if (location.state) {
+      const state = location.state as { initialCourse?: string; initialBranch?: string };
+      if (state.initialCourse) {
+          setSelectedCourse(state.initialCourse);
+          if (state.initialBranch) {
+              setSelectedBranch(state.initialBranch);
+          }
+      }
+    }
+  }, [location.state]);
 
   // Memoize static list of courses
   const courses = useMemo(() => Array.from(new Set(FEES.map(f => f.course))), []);

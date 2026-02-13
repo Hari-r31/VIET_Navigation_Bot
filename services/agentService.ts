@@ -93,6 +93,25 @@ export const processUserMessage = (
             };
         }
     }
+
+    if (context.clarificationType === 'LOCATION_DISAMBIGUATE') {
+        // User responded to "Did you mean X or Y?"
+        // Treat response as a refined search
+        const matches = searchLocations(text);
+        if (matches.length > 0) {
+             return {
+                message: `Got it. Taking you to ${matches[0].name}.`,
+                action: { type: 'NAVIGATE', payload: { initialQuery: matches[0].name } },
+                updatedContext: {} 
+             };
+        } else {
+             return {
+                 message: "I'm still having trouble. Try searching for the Department or Block name.",
+                 action: { type: 'NONE' },
+                 updatedContext: {}
+             };
+        }
+    }
   }
 
   // 2. Handle New Intents
@@ -118,7 +137,7 @@ export const processUserMessage = (
     case IntentType.NAVIGATE:
     case IntentType.UNKNOWN: // Treat unknown as potential navigation search
       // Remove keywords to isolate the location name
-      const cleanQuery = text.replace(/where is|go to|find|navigate to|show me|the/gi, '').trim();
+      const cleanQuery = text.replace(/where is|go to|find|navigate to|show me|the|directions to/gi, '').trim();
       
       if (cleanQuery.length < 2) {
           return {
@@ -131,11 +150,30 @@ export const processUserMessage = (
       const matches = searchLocations(cleanQuery);
       
       if (matches.length > 0) {
-        // High confidence match (Fuse.js usually sorts by score)
+        // AMBIGUITY CHECK:
+        // If we have multiple matches and the query is short/ambiguous, asks clarification.
+        // Example: "Lab" -> returns 3 different labs.
+        if (matches.length > 1 && cleanQuery.length < 5) {
+             const options = matches.slice(0, 3).map(m => m.name).join(", or ");
+             return {
+                 message: `I found a few places. Did you mean ${options}?`,
+                 action: { type: 'NONE' },
+                 updatedContext: {
+                     ...context,
+                     awaitingClarification: true,
+                     clarificationType: 'LOCATION_DISAMBIGUATE'
+                 }
+             };
+        }
+
         const topMatch = matches[0];
         
-        // If query is very short or ambiguous, maybe confirm? 
-        // For kiosk, speed is key. If distinct match, just go.
+        // CONFIRMATION CHECK:
+        // If query doesn't match well (mock logic: if name length differs significantly from query length)
+        // In real app, Fuse score check (item.score). Since we abstracted search, we assume topMatch is best.
+        // Let's implement a simple heuristic: if top match name is very different from query?
+        // Skipped for now to keep it snappy for kiosk.
+
         return {
            message: `Found it! Taking you to ${topMatch.name}.`,
            action: { type: 'NAVIGATE', payload: { initialQuery: topMatch.name } },
@@ -191,7 +229,10 @@ function handleFeeFlow(data: { course?: string; branch?: string }, currentContex
    // 3. All Good
    return {
      message: `Opening fee structure for ${data.course} - ${data.branch}...`,
-     action: { type: 'SHOW_FEES' }, // The view will handle state if we pass it, but for now just routing
+     action: { 
+         type: 'SHOW_FEES',
+         payload: { initialCourse: data.course, initialBranch: data.branch }
+     },
      updatedContext: {}
    };
 }

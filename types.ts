@@ -50,7 +50,7 @@ export interface ChatMessage {
 
 export interface AgentContext {
   awaitingClarification?: boolean;
-  clarificationType?: 'FEE_COURSE' | 'FEE_BRANCH' | 'LOCATION_CONFIRM';
+  clarificationType?: 'FEE_COURSE' | 'FEE_BRANCH' | 'LOCATION_CONFIRM' | 'LOCATION_DISAMBIGUATE';
   partialFeeData?: {
     course?: string;
     branch?: string;

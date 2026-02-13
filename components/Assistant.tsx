@@ -101,7 +101,7 @@ const Assistant: React.FC = () => {
        } else if (response.action.type === 'SHOW_FEES') {
          setTimeout(() => {
             setIsOpen(false);
-            navigate('/fees');
+            navigate('/fees', { state: response.action.payload });
          }, 1500);
        }
 
