@@ -153,7 +153,7 @@ export const LOCATIONS: LocationData[] = [
   {
     id: 'grounds',
     name: 'College Ground',
-    block: 'Grounds',
+    block: 'Campus Facilities',
     floor: 'Open Area',
     category: 'amenity',
     aliases: ['playground', 'cricket', 'sports'],
@@ -169,7 +169,7 @@ export const LOCATIONS: LocationData[] = [
   {
     id: 'canteen',
     name: 'Canteen',
-    block: 'Amenities',
+    block: 'Campus Facilities',
     floor: 'Ground',
     category: 'amenity',
     aliases: ['food', 'lunch', 'cafeteria'],
@@ -185,7 +185,7 @@ export const LOCATIONS: LocationData[] = [
   {
     id: 'mess',
     name: 'Student Mess',
-    block: 'Amenities',
+    block: 'Campus Facilities',
     floor: 'Ground',
     category: 'amenity',
     aliases: ['hostel mess', 'dining'],

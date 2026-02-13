@@ -191,24 +191,22 @@ const Directions: React.FC = () => {
           <p className="text-slate-500 text-sm mt-1">Direct Navigation</p>
       </button>
 
-      <button onClick={() => handleSelectLocation(LOCATIONS.find(l => l.id === 'grounds')!)} className="bg-white p-8 rounded-2xl shadow-lg border border-slate-200 hover:border-blue-500 hover:shadow-blue-500/20 transition-all text-left group">
-          <div className="bg-green-100 w-14 h-14 rounded-full flex items-center justify-center text-green-600 mb-4 group-hover:bg-green-600 group-hover:text-white transition-colors"><Footprints size={28} /></div>
-          <h3 className="text-xl font-bold text-slate-900">Grounds</h3>
-          <p className="text-slate-500 text-sm mt-1">Sports & Events</p>
-      </button>
-
-      {/* External Amenities Group */}
-      <button onClick={() => setNavState({...navState, block: 'Amenities'})} className="bg-white p-8 rounded-2xl shadow-lg border border-slate-200 hover:border-blue-500 hover:shadow-blue-500/20 transition-all text-left group">
+      {/* Campus Facilities Group (formerly Amenities + Grounds) */}
+      <button onClick={() => setNavState({...navState, block: 'Campus Facilities'})} className="bg-white p-8 rounded-2xl shadow-lg border border-slate-200 hover:border-blue-500 hover:shadow-blue-500/20 transition-all text-left group">
           <div className="bg-yellow-100 w-14 h-14 rounded-full flex items-center justify-center text-yellow-600 mb-4 group-hover:bg-yellow-600 group-hover:text-white transition-colors"><Coffee size={28} /></div>
-          <h3 className="text-xl font-bold text-slate-900">Amenities</h3>
-          <p className="text-slate-500 text-sm mt-1">Canteen, Mess</p>
+          <h3 className="text-xl font-bold text-slate-900">Campus Facilities</h3>
+          <p className="text-slate-500 text-sm mt-1">Grounds, Canteen, Mess</p>
       </button>
     </div>
   );
 
-  // 2. Amenities Selection (If Amenities Block selected)
-  const renderAmenitiesSelection = () => (
+  // 2. Facilities Selection (If Campus Facilities Block selected)
+  const renderFacilitiesSelection = () => (
      <div className="grid grid-cols-2 md:grid-cols-3 gap-6 animate-in slide-in-from-right-4 duration-500">
+        <button onClick={() => handleSelectLocation(LOCATIONS.find(l => l.id === 'grounds')!)} className="bg-white p-6 rounded-2xl shadow-lg border hover:border-blue-500 group text-left">
+            <div className="bg-green-100 w-12 h-12 rounded-xl flex items-center justify-center text-green-600 mb-3 group-hover:bg-green-600 group-hover:text-white"><Footprints size={24}/></div>
+            <h3 className="text-lg font-bold">College Ground</h3>
+        </button>
         <button onClick={() => handleSelectLocation(LOCATIONS.find(l => l.id === 'canteen')!)} className="bg-white p-6 rounded-2xl shadow-lg border hover:border-blue-500 group text-left">
             <div className="bg-yellow-100 w-12 h-12 rounded-xl flex items-center justify-center text-yellow-600 mb-3 group-hover:bg-yellow-600 group-hover:text-white"><Coffee size={24}/></div>
             <h3 className="text-lg font-bold">Canteen</h3>
@@ -528,10 +526,10 @@ const Directions: React.FC = () => {
                         </div>
                     )}
 
-                    {navState.block === 'Amenities' && (
+                    {navState.block === 'Campus Facilities' && (
                         <div>
-                            <h2 className="text-white text-3xl font-bold mb-6 text-center drop-shadow-md">Select Amenity</h2>
-                            {renderAmenitiesSelection()}
+                            <h2 className="text-white text-3xl font-bold mb-6 text-center drop-shadow-md">Select Facility</h2>
+                            {renderFacilitiesSelection()}
                         </div>
                     )}
 
