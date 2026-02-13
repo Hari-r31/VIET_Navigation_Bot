@@ -30,14 +30,41 @@ export interface FeeStructure {
   description?: string;
 }
 
+// --- Agent Types ---
+
 export enum IntentType {
   NAVIGATE = 'NAVIGATE',
   FEE = 'FEE',
-  UNKNOWN = 'UNKNOWN'
+  GREETING = 'GREETING',
+  UNKNOWN = 'UNKNOWN',
+  CLEAR = 'CLEAR'
 }
 
-export interface IntentResult {
-  type: IntentType;
-  entity?: string; // extracted location or course info
-  confidence: number;
+export interface ChatMessage {
+  id: string;
+  sender: 'user' | 'assistant';
+  text: string;
+  isTyping?: boolean;
+  timestamp: number;
+}
+
+export interface AgentContext {
+  awaitingClarification?: boolean;
+  clarificationType?: 'FEE_COURSE' | 'FEE_BRANCH' | 'LOCATION_CONFIRM';
+  partialFeeData?: {
+    course?: string;
+    branch?: string;
+  };
+  potentialLocation?: LocationData;
+}
+
+export interface AgentAction {
+  type: 'NAVIGATE' | 'SHOW_FEES' | 'NONE';
+  payload?: any;
+}
+
+export interface AgentResponse {
+  message: string;
+  action: AgentAction;
+  updatedContext: AgentContext;
 }
