@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { Map, GraduationCap, ArrowRight, Info, Users, Award, Globe, Sparkles, Code, School, ChevronRight } from 'lucide-react';
+import { Map, GraduationCap, Info, Users, Sparkles, Code, School, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Home: React.FC = () => {
@@ -26,7 +25,7 @@ const Home: React.FC = () => {
         {/* Directions Card - Primary Action */}
         <button 
           onClick={() => navigate('/directions')}
-          className="relative overflow-hidden rounded-3xl bg-blue-600 text-white p-6 md:p-8 lg:p-10 text-left group shadow-xl hover:shadow-2xl hover:bg-blue-700 transition-all flex flex-col justify-between"
+          className="relative overflow-hidden rounded-3xl bg-blue-600 text-white p-6 md:p-8 lg:p-10 text-left group shadow-xl hover:shadow-2xl hover:bg-blue-700 transition-all flex flex-col justify-between h-full w-full"
         >
           {/* Decor */}
           <div className="absolute right-0 top-0 w-40 h-40 md:w-60 md:h-60 lg:w-80 lg:h-80 bg-white/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
@@ -52,7 +51,7 @@ const Home: React.FC = () => {
         {/* Fees Card - Secondary Action */}
         <button 
           onClick={() => navigate('/fees')}
-          className="relative overflow-hidden rounded-3xl bg-white border border-slate-200 text-slate-900 p-6 md:p-8 lg:p-10 text-left group shadow-xl hover:shadow-2xl hover:border-emerald-400 transition-all flex flex-col justify-between"
+          className="relative overflow-hidden rounded-3xl bg-white border border-slate-200 text-slate-900 p-6 md:p-8 lg:p-10 text-left group shadow-xl hover:shadow-2xl hover:border-emerald-400 transition-all flex flex-col justify-between h-full w-full"
         >
           {/* Decor */}
           <div className="absolute right-0 top-0 w-40 h-40 md:w-60 md:h-60 lg:w-80 lg:h-80 bg-emerald-50 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
