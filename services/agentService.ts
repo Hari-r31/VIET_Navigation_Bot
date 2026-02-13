@@ -1,18 +1,18 @@
 
-import { IntentType, AgentContext, AgentResponse, LocationData } from '../types';
+import { IntentType, AgentContext, AgentResponse, LocationData, LocationCategory } from '../types';
 import { searchLocations } from './searchService';
-import { FEES } from '../data/mockData';
+import { FEES, LOCATIONS } from '../data/mockData';
 
 // --- Constants & Patterns ---
 const GREETINGS = ['hi', 'hello', 'hey', 'good morning', 'good afternoon', 'hola'];
-const NAV_KEYWORDS = ['where', 'go', 'find', 'navigate', 'direction', 'route', 'way', 'location', 'map'];
+const NAV_KEYWORDS = ['where', 'go', 'find', 'navigate', 'direction', 'route', 'way', 'location', 'map', 'take me'];
 const FEE_KEYWORDS = ['fee', 'cost', 'price', 'tuition', 'money', 'pay', 'seat'];
 
 // --- Helper: Intent Detection ---
 const detectIntent = (text: string): IntentType => {
   const lower = text.toLowerCase();
   
-  if (lower === 'clear' || lower === 'reset') return IntentType.CLEAR;
+  if (lower === 'clear' || lower === 'reset' || lower === 'restart') return IntentType.CLEAR;
   if (GREETINGS.some(g => lower.startsWith(g))) return IntentType.GREETING;
   if (FEE_KEYWORDS.some(k => lower.includes(k))) return IntentType.FEE;
   
@@ -53,6 +53,8 @@ export const processUserMessage = (
 
   // 1. Handle Clarifications (Multi-turn)
   if (context.awaitingClarification) {
+    
+    // --- Fee Flow Clarifications ---
     if (context.clarificationType === 'FEE_COURSE') {
        const extracted = extractFeeEntities(text);
        if (extracted.course) {
@@ -70,7 +72,6 @@ export const processUserMessage = (
        if (extracted.branch) {
          return handleFeeFlow({ ...context.partialFeeData, branch: extracted.branch }, { ...context, awaitingClarification: false });
        }
-       // Allow skipping branch if they just want general info? For now enforce valid branch or generic.
        return {
          message: "Could you specify the branch? (CSE, ECE, EEE, MECH)",
          action: { type: 'NONE' },
@@ -78,16 +79,120 @@ export const processUserMessage = (
        };
     }
 
-    if (context.clarificationType === 'LOCATION_CONFIRM') {
-        if (lowerText.includes('yes') || lowerText.includes('yeah') || lowerText.includes('ok')) {
+    // --- Navigation Category Selection (e.g. User says "Departments") ---
+    if (context.clarificationType === 'NAV_CATEGORY') {
+        // Administrative Mapping
+        if (lowerText.includes('admin') || lowerText.includes('office') || lowerText.includes('principal')) {
              return {
-                message: `Navigating to ${context.potentialLocation?.name}...`,
+                 message: "Okay, Administrative Section. 🏛️\nAre you looking for the Principal's Chamber, Admin Office, Exam Cell, or NCC Room?",
+                 action: { type: 'NONE' },
+                 updatedContext: {
+                     ...context,
+                     awaitingClarification: true,
+                     clarificationType: 'NAV_SPECIFIC_SELECT',
+                     categoryFilter: 'administrative'
+                 }
+             };
+        } 
+        // Academic Mapping
+        else if (lowerText.includes('academic') || lowerText.includes('dept') || lowerText.includes('department') || lowerText.includes('class') || lowerText.includes('study')) {
+             return {
+                 message: "Got it, Academic Departments. 🎓\nWe have CSE, ECE, EEE, Mechanical, and Civil. Which one would you like to visit?",
+                 action: { type: 'NONE' },
+                 updatedContext: {
+                     ...context,
+                     awaitingClarification: true,
+                     clarificationType: 'NAV_SPECIFIC_SELECT',
+                     categoryFilter: 'academic'
+                 }
+             };
+        } 
+        // Amenities Mapping
+        else if (lowerText.includes('amenity') || lowerText.includes('common') || lowerText.includes('mess') || lowerText.includes('library') || lowerText.includes('food') || lowerText.includes('restroom')) {
+             return {
+                 message: "General Amenities. ☕\nI can take you to the Central Library, Canteen, Seminar Hall, or Girls Waiting Room. What's your choice?",
+                 action: { type: 'NONE' },
+                 updatedContext: {
+                     ...context,
+                     awaitingClarification: true,
+                     clarificationType: 'NAV_SPECIFIC_SELECT',
+                     categoryFilter: 'amenity'
+                 }
+             };
+        }
+        
+        // Fallback: If they skipped category and named a specific place (e.g. "Library")
+        const matches = searchLocations(text);
+        if (matches.length > 0) {
+            return {
+                message: `Ah, found it directly! Taking you to ${matches[0].name}.`,
+                action: { type: 'NAVIGATE', payload: { initialQuery: matches[0].name } },
+                updatedContext: {} 
+            };
+        }
+
+        return {
+            message: "I didn't quite understand. Please choose: 'Administrative', 'Departments', or 'Amenities'.",
+            action: { type: 'NONE' },
+            updatedContext: context
+        };
+    }
+
+    // --- Navigation Specific Selection (e.g. User says "CSE") ---
+    if (context.clarificationType === 'NAV_SPECIFIC_SELECT') {
+        // Search globally first
+        let matches = searchLocations(text);
+
+        // If we have a category filter, prioritize matches in that category
+        if (context.categoryFilter) {
+            const categoryMatches = matches.filter(m => m.category === context.categoryFilter);
+            if (categoryMatches.length > 0) {
+                matches = categoryMatches; // Use filtered list
+            }
+        }
+
+        if (matches.length > 0) {
+            return {
+                message: `Excellent choice. Navigating to ${matches[0].name}.`,
+                action: { type: 'NAVIGATE', payload: { initialQuery: matches[0].name } },
+                updatedContext: {} // Reset context
+            };
+        } else {
+             // Handle Department nicknames manually if search fails (e.g. "Computer science" vs "CSE")
+             if (context.categoryFilter === 'academic') {
+                if (lowerText.includes('computer') || lowerText.includes('cs')) matches = searchLocations('CSE');
+                else if (lowerText.includes('electronic') || lowerText.includes('ec')) matches = searchLocations('ECE');
+                else if (lowerText.includes('electric') || lowerText.includes('ee')) matches = searchLocations('EEE');
+                else if (lowerText.includes('civil')) matches = searchLocations('Civil'); // Capitalize for search
+                else if (lowerText.includes('mech')) matches = searchLocations('MECH');
+                
+                if (matches.length > 0) {
+                    return {
+                        message: `Navigating to ${matches[0].name}.`,
+                        action: { type: 'NAVIGATE', payload: { initialQuery: matches[0].name } },
+                        updatedContext: {} 
+                    };
+                }
+             }
+
+             return {
+                 message: `I couldn't find "${text}" in this section. Try saying the exact name (e.g., 'CSE' or 'Library') or say 'Restart'.`,
+                 action: { type: 'NONE' },
+                 updatedContext: context
+             };
+        }
+    }
+
+    if (context.clarificationType === 'LOCATION_CONFIRM') {
+        if (lowerText.includes('yes') || lowerText.includes('yeah') || lowerText.includes('ok') || lowerText.includes('sure')) {
+             return {
+                message: `Great! Navigating to ${context.potentialLocation?.name}...`,
                 action: { type: 'NAVIGATE', payload: { initialQuery: context.potentialLocation?.name } },
                 updatedContext: {} // Reset
              };
         } else {
             return {
-                message: "Okay, let's try again. Where would you like to go?",
+                message: "Okay, cancelled. What else can I help you find?",
                 action: { type: 'NONE' },
                 updatedContext: {}
             };
@@ -95,8 +200,6 @@ export const processUserMessage = (
     }
 
     if (context.clarificationType === 'LOCATION_DISAMBIGUATE') {
-        // User responded to "Did you mean X or Y?"
-        // Treat response as a refined search
         const matches = searchLocations(text);
         if (matches.length > 0) {
              return {
@@ -106,7 +209,7 @@ export const processUserMessage = (
              };
         } else {
              return {
-                 message: "I'm still having trouble. Try searching for the Department or Block name.",
+                 message: "I'm still having trouble. Try searching for the exact Department or Block name.",
                  action: { type: 'NONE' },
                  updatedContext: {}
              };
@@ -118,14 +221,14 @@ export const processUserMessage = (
   switch (intent) {
     case IntentType.GREETING:
       return {
-        message: "Hello! I can help you find locations or check fee structures. What do you need?",
+        message: "Hello! 👋 I can help you find locations or check fee structures. Try asking 'Where is the library?' or 'Show B.Tech fees'.",
         action: { type: 'NONE' },
         updatedContext: context
       };
 
     case IntentType.CLEAR:
       return {
-        message: "Conversation reset. How can I help?",
+        message: "Okay, let's start over. How can I help?",
         action: { type: 'NONE' },
         updatedContext: {}
       };
@@ -137,13 +240,18 @@ export const processUserMessage = (
     case IntentType.NAVIGATE:
     case IntentType.UNKNOWN: // Treat unknown as potential navigation search
       // Remove keywords to isolate the location name
-      const cleanQuery = text.replace(/where is|go to|find|navigate to|show me|the|directions to/gi, '').trim();
+      const cleanQuery = text.replace(/i need|want to|help|navigation|where is|go to|find|navigate to|show me|the|directions to|location|take me to/gi, '').trim();
       
-      if (cleanQuery.length < 2) {
+      // If query is too short or empty, it means user asked "Directions" or "Navigation help" without specific location
+      if (cleanQuery.length < 3) {
           return {
-              message: "I'm listening. Where do you want to go, or what fees are you looking for?",
+              message: "Sure! Are you looking for Administrative offices 🏛️, Academic departments 🎓, or General amenities ☕?",
               action: { type: 'NONE' },
-              updatedContext: context
+              updatedContext: {
+                  ...context,
+                  awaitingClarification: true,
+                  clarificationType: 'NAV_CATEGORY'
+              }
           };
       }
 
@@ -151,8 +259,6 @@ export const processUserMessage = (
       
       if (matches.length > 0) {
         // AMBIGUITY CHECK:
-        // If we have multiple matches and the query is short/ambiguous, asks clarification.
-        // Example: "Lab" -> returns 3 different labs.
         if (matches.length > 1 && cleanQuery.length < 5) {
              const options = matches.slice(0, 3).map(m => m.name).join(", or ");
              return {
@@ -168,12 +274,6 @@ export const processUserMessage = (
 
         const topMatch = matches[0];
         
-        // CONFIRMATION CHECK:
-        // If query doesn't match well (mock logic: if name length differs significantly from query length)
-        // In real app, Fuse score check (item.score). Since we abstracted search, we assume topMatch is best.
-        // Let's implement a simple heuristic: if top match name is very different from query?
-        // Skipped for now to keep it snappy for kiosk.
-
         return {
            message: `Found it! Taking you to ${topMatch.name}.`,
            action: { type: 'NAVIGATE', payload: { initialQuery: topMatch.name } },
@@ -181,7 +281,7 @@ export const processUserMessage = (
         };
       } else {
         return {
-          message: "I couldn't find that location. Try searching for a department (e.g., 'CSE') or amenity (e.g., 'Canteen').",
+          message: "I couldn't find that location. 😕 Try searching for a department (e.g., 'CSE'), 'Library', or 'Canteen'.",
           action: { type: 'NONE' },
           updatedContext: context
         };
@@ -211,8 +311,7 @@ function handleFeeFlow(data: { course?: string; branch?: string }, currentContex
      };
    }
 
-   // 2. Missing Branch (Only for B.Tech/Diploma usually, MBA has 'General')
-   // Simple check: if we have course but no branch, ask for branch
+   // 2. Missing Branch
    if (!data.branch) {
      return {
        message: `For ${data.course}, which branch? (e.g., CSE, ECE)`,

@@ -2,20 +2,24 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Mic, X, Send, Bot, Sparkles, User, RefreshCw, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { startListening } from '../services/speechService';
 import { processUserMessage } from '../services/agentService';
 import { ChatMessage, AgentContext } from '../types';
-import toast from 'react-hot-toast';
+import VoiceSearchModal from './VoiceSearchModal';
 
 const Assistant: React.FC = () => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
-  const [isListening, setIsListening] = useState(false);
+  const [showVoiceModal, setShowVoiceModal] = useState(false);
   const [inputValue, setInputValue] = useState('');
   
   // Conversation State
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { id: '1', sender: 'assistant', text: "Hi! I'm Vi. I can help with Directions or Fees.", timestamp: Date.now() }
+    { 
+      id: '1', 
+      sender: 'assistant', 
+      text: "Welcome to VIET! 🎓 I am your AI Campus Assistant. I can guide you to any location or provide fee details. How may I help you?", 
+      timestamp: Date.now() 
+    }
   ]);
   const [agentContext, setAgentContext] = useState<AgentContext>({});
   const [isTyping, setIsTyping] = useState(false);
@@ -39,22 +43,10 @@ const Assistant: React.FC = () => {
     }
   }, [isOpen]);
 
-  // Handle Voice
-  const handleVoiceInput = () => {
-    if (isListening) return;
-    setIsListening(true);
-    startListening(
-      (text) => {
-        setInputValue(text);
-        handleSubmit(undefined, text);
-      },
-      () => setIsListening(false),
-      (err) => {
-        setIsListening(false);
-        toast.error("Could not hear you. Please try typing.");
-      },
-      (interim) => setInputValue(interim)
-    );
+  // Handle Voice Result from Modal
+  const handleVoiceResult = (text: string) => {
+    setInputValue(text);
+    handleSubmit(undefined, text);
   };
 
   // Handle Submit
@@ -109,12 +101,23 @@ const Assistant: React.FC = () => {
   };
 
   const handleReset = () => {
-    setMessages([{ id: Date.now().toString(), sender: 'assistant', text: "Conversation cleared. How can I help?", timestamp: Date.now() }]);
+    setMessages([{ 
+        id: Date.now().toString(), 
+        sender: 'assistant', 
+        text: "Conversation cleared. I can help with Navigation or Course Details.", 
+        timestamp: Date.now() 
+    }]);
     setAgentContext({});
   };
 
   return (
     <>
+      <VoiceSearchModal 
+        isOpen={showVoiceModal} 
+        onClose={() => setShowVoiceModal(false)} 
+        onResult={handleVoiceResult} 
+      />
+
       {/* Floating Action Button */}
       <button
         onClick={() => setIsOpen(true)}
@@ -125,14 +128,20 @@ const Assistant: React.FC = () => {
         <div className="absolute inset-0 bg-white rounded-full opacity-20 animate-ping"></div>
         <Bot size={32} className="text-white relative z-10" />
         <span className="absolute right-full mr-4 bg-white px-3 py-1 rounded-lg shadow-md text-sm font-bold text-slate-700 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
-            Need Help?
+            VIET AI Assistant
         </span>
       </button>
 
       {/* Chat Window Modal */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white w-full sm:max-w-md h-[85vh] sm:h-[600px] sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col relative animate-in slide-in-from-bottom-10 zoom-in-95 duration-300 border border-white/20">
+        <div 
+            className="fixed inset-0 z-50 flex items-end sm:items-end sm:justify-end bg-black/20 backdrop-blur-[2px] transition-all duration-300"
+            onClick={() => setIsOpen(false)} // Close on outside click
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()} // Prevent close on inside click
+            className="bg-white w-full sm:w-[400px] h-[85vh] sm:h-[600px] rounded-t-3xl sm:rounded-2xl sm:mb-6 sm:mr-6 shadow-2xl overflow-hidden flex flex-col relative animate-in slide-in-from-bottom-10 fade-in duration-300 origin-bottom-right border border-white/20"
+          >
             
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 flex items-center justify-between shrink-0 shadow-md z-10">
@@ -217,14 +226,11 @@ const Assistant: React.FC = () => {
                 {/* Suggestion Chips (Context Aware) */}
                 {messages.length < 3 && !isTyping && (
                     <div className="flex gap-2 mb-3 overflow-x-auto pb-1 no-scrollbar">
-                        <button onClick={() => handleSubmit(undefined, "Directions to Library")} className="whitespace-nowrap px-3 py-1.5 bg-slate-100 hover:bg-blue-50 text-slate-600 text-xs font-medium rounded-full border border-slate-200 transition-colors">
-                            📍 Library
+                        <button onClick={() => handleSubmit(undefined, "I need navigation help")} className="whitespace-nowrap px-3 py-1.5 bg-slate-100 hover:bg-blue-50 text-slate-600 text-xs font-medium rounded-full border border-slate-200 transition-colors">
+                            📍 Navigation
                         </button>
-                        <button onClick={() => handleSubmit(undefined, "B.Tech Fees")} className="whitespace-nowrap px-3 py-1.5 bg-slate-100 hover:bg-blue-50 text-slate-600 text-xs font-medium rounded-full border border-slate-200 transition-colors">
-                            💰 B.Tech Fees
-                        </button>
-                        <button onClick={() => handleSubmit(undefined, "Where is the Principal?")} className="whitespace-nowrap px-3 py-1.5 bg-slate-100 hover:bg-blue-50 text-slate-600 text-xs font-medium rounded-full border border-slate-200 transition-colors">
-                            👔 Principal
+                        <button onClick={() => handleSubmit(undefined, "Tell me about course fees")} className="whitespace-nowrap px-3 py-1.5 bg-slate-100 hover:bg-blue-50 text-slate-600 text-xs font-medium rounded-full border border-slate-200 transition-colors">
+                            💰 Course Details
                         </button>
                     </div>
                 )}
@@ -245,10 +251,8 @@ const Assistant: React.FC = () => {
                         />
                         <button
                             type="button"
-                            onClick={handleVoiceInput}
-                            className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-xl transition-all duration-300 ${
-                                isListening ? 'bg-red-500 text-white shadow-lg scale-110 animate-pulse' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-200'
-                            }`}
+                            onClick={() => setShowVoiceModal(true)}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-xl transition-all duration-300 text-slate-400 hover:text-blue-600 hover:bg-blue-50"
                         >
                             <Mic size={20} />
                         </button>

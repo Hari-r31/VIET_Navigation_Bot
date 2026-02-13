@@ -50,7 +50,8 @@ export interface ChatMessage {
 
 export interface AgentContext {
   awaitingClarification?: boolean;
-  clarificationType?: 'FEE_COURSE' | 'FEE_BRANCH' | 'LOCATION_CONFIRM' | 'LOCATION_DISAMBIGUATE';
+  clarificationType?: 'FEE_COURSE' | 'FEE_BRANCH' | 'LOCATION_CONFIRM' | 'LOCATION_DISAMBIGUATE' | 'NAV_CATEGORY' | 'NAV_SPECIFIC_SELECT';
+  categoryFilter?: LocationCategory; // New: Remembers if user said "Academic" vs "Admin"
   partialFeeData?: {
     course?: string;
     branch?: string;
