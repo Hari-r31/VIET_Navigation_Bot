@@ -1,302 +1,304 @@
 
 import { LocationData, FeeStructure } from '../types';
 
+// Helper to generate steps
+const mainBlockSteps = (floor: string, direction: string, room: string) => [
+  { instruction: 'Start at Main Block Ground Floor Lobby.', icon: 'straight' as const },
+  { instruction: `Go to the ${floor}.`, icon: floor === 'Ground Floor' ? 'straight' as const : 'stairs-up' as const },
+  { instruction: `Turn ${direction} in the corridor.`, icon: direction.includes('Left') ? 'turn-left' as const : 'turn-right' as const },
+  { instruction: `The ${room} is ahead.`, icon: 'destination' as const }
+];
+
+// Helper to generate standardized rooms for a department
+function createDeptLocations(code: string, program: 'B.Tech'|'M.Tech', fullName: string, floor: string): LocationData[] {
+  const baseId = `${program.toLowerCase().replace('.', '')}-${code.toLowerCase()}`;
+  const commonSteps = mainBlockSteps(floor, 'Straight', `${code} Department`);
+  
+  return [
+    {
+      id: `${baseId}-hod`,
+      name: `${code} HOD Cabin (${program})`,
+      block: 'Main Block',
+      floor: floor,
+      category: 'academic',
+      department: code,
+      program: program,
+      aliases: [`${code} hod`, `${fullName} head`],
+      distance: 100,
+      estimatedTime: 2,
+      steps: [...commonSteps, { instruction: 'The HOD Cabin is the first door in the wing.', icon: 'destination' }]
+    },
+    {
+      id: `${baseId}-staff`,
+      name: `${code} Staff Room`,
+      block: 'Main Block',
+      floor: floor,
+      category: 'academic',
+      department: code,
+      program: program,
+      aliases: [`${code} faculty`, `${fullName} teachers`],
+      distance: 110,
+      estimatedTime: 2,
+      steps: [...commonSteps, { instruction: 'The Staff Room is located centrally in the wing.', icon: 'destination' }]
+    },
+    {
+      id: `${baseId}-class`,
+      name: `${code} Classrooms`,
+      block: 'Main Block',
+      floor: floor,
+      category: 'academic',
+      department: code,
+      program: program,
+      aliases: [`${code} class`, `${code} lecture hall`],
+      distance: 120,
+      estimatedTime: 2,
+      steps: [...commonSteps, { instruction: 'Classrooms are located along the main corridor of this wing.', icon: 'destination' }]
+    }
+  ];
+}
+
+// Helper for Floor-wise Amenities
+function createMainBlockAmenities(floor: string): LocationData[] {
+    const suffix = floor.replace(/\s+/g, '-').toLowerCase();
+    // Default direction for amenities usually central or ends
+    const commonSteps = mainBlockSteps(floor, 'Straight', 'Utilities Area'); 
+
+    return [
+        {
+            id: `washroom-boys-${suffix}`,
+            name: `Boys Washroom (${floor})`,
+            block: 'Main Block',
+            floor: floor,
+            category: 'amenity',
+            aliases: ['boys toilet', 'gents washroom', 'men restroom'],
+            distance: 50,
+            estimatedTime: 1,
+            steps: [...commonSteps, { instruction: 'Located near the central staircase.', icon: 'destination' }]
+        },
+        {
+            id: `washroom-girls-${suffix}`,
+            name: `Girls Washroom (${floor})`,
+            block: 'Main Block',
+            floor: floor,
+            category: 'amenity',
+            aliases: ['girls toilet', 'ladies washroom', 'women restroom'],
+            distance: 55,
+            estimatedTime: 1,
+            steps: [...commonSteps, { instruction: 'Located at the end of the corridor.', icon: 'destination' }]
+        },
+        {
+            id: `water-${suffix}`,
+            name: `Drinking Water (${floor})`,
+            block: 'Main Block',
+            floor: floor,
+            category: 'amenity',
+            aliases: ['water cooler', 'ro water', 'drinking water', 'filter water'],
+            distance: 45,
+            estimatedTime: 1,
+            steps: [...commonSteps, { instruction: 'Water outlet is located near the washrooms.', icon: 'destination' }]
+        },
+         {
+            id: `girls-waiting-${suffix}`,
+            name: `Girls Rest Room (${floor})`,
+            block: 'Main Block',
+            floor: floor,
+            category: 'amenity',
+            aliases: ['girls common room', 'waiting room', 'girls lounge'],
+            distance: 60,
+            estimatedTime: 1,
+            steps: [...commonSteps, { instruction: 'Opposite to the Girls Washroom.', icon: 'destination' }]
+        }
+    ];
+}
+
 export const LOCATIONS: LocationData[] = [
-  // --- Administrative ---
-  {
-    id: 'principal-chamber',
-    name: 'Principal\'s Chamber',
-    block: 'Main Campus',
-    floor: 'Ground Floor',
-    category: 'administrative',
-    aliases: ['principal', 'head of institute', 'director'],
-    distance: 50,
-    estimatedTime: 1,
-    mapImage: 'https://placehold.co/800x600/e0f2fe/0369a1?text=Map:+Principal+Chamber',
-    steps: [
-      { instruction: 'Enter Main Block', icon: 'straight' },
-      { instruction: 'Turn left at reception', icon: 'turn-left' },
-      { instruction: 'First door on the right', icon: 'destination' }
-    ]
-  },
-  {
-    id: 'admin-office',
-    name: 'Administrative Office',
-    block: 'Main Campus',
-    floor: 'Ground Floor',
-    category: 'administrative',
-    aliases: ['admin', 'office', 'fees counter', 'accounts'],
-    distance: 40,
-    estimatedTime: 1,
-    mapImage: 'https://placehold.co/800x600/fff7ed/c2410c?text=Map:+Main+Campus+Ground+Floor',
-    steps: [
-      { instruction: 'Turn left from the kiosk', icon: 'turn-left' },
-      { instruction: 'Walk past the Director\'s office', icon: 'straight' },
-      { instruction: 'The Admin Office is on the left', icon: 'destination' },
-    ]
-  },
-  {
-    id: 'ncc-room',
-    name: 'NCC Office',
-    block: 'Main Campus',
-    floor: 'Ground Floor',
-    category: 'administrative',
-    aliases: ['ncc', 'national cadet corps'],
-    distance: 100,
-    estimatedTime: 2,
-    mapImage: 'https://placehold.co/800x600/f0fdf4/15803d?text=Map:+NCC+Room',
-    steps: [
-      { instruction: 'Go to the rear exit of Ground Floor', icon: 'straight' },
-      { instruction: 'Located near the sports room', icon: 'destination' }
-    ]
-  },
-  {
-    id: 'exam-cell',
-    name: 'Examination Cell',
-    block: 'Main Campus',
-    floor: '1st Floor',
-    category: 'administrative',
-    aliases: ['exam section', 'results', 'marks'],
-    distance: 150,
-    estimatedTime: 3,
-    mapImage: 'https://placehold.co/800x600/fdf4ff/701a75?text=Map:+Exam+Cell',
-    steps: [
-      { instruction: 'Take main stairs to 1st floor', icon: 'stairs-up' },
-      { instruction: 'Turn right', icon: 'turn-right' },
-      { instruction: 'Walk to the end of the corridor', icon: 'destination' }
-    ]
-  },
-
-  // --- ECE Department ---
-  {
-    id: 'ece-hod',
-    name: 'ECE HOD Cabin',
-    block: 'Main Campus',
-    floor: '2nd Floor',
-    category: 'academic',
-    department: 'ECE',
-    aliases: ['ece hod', 'ece head', 'electronics hod'],
-    distance: 120,
-    estimatedTime: 3,
-    mapImage: 'https://placehold.co/800x600/e0f2fe/0369a1?text=Map:+Main+Campus+Block+2nd+Floor',
-    steps: [
-      { instruction: 'Go straight from the main entrance', detail: 'Walk 20 meters past the reception', icon: 'straight' },
-      { instruction: 'Take the stairs to the 1st floor', detail: 'Main staircase located near the lobby', icon: 'stairs-up' },
-      { instruction: 'Turn left after the washroom', detail: 'Follow the corridor', icon: 'turn-left' },
-      { instruction: 'Take the stairs to the 2nd floor', detail: 'End of the corridor', icon: 'stairs-up' },
-      { instruction: 'The HOD Cabin is on your right', detail: 'Room 204', icon: 'destination' },
-    ]
-  },
-  {
-    id: 'ece-staff',
-    name: 'ECE Staff Room',
-    block: 'Main Campus',
-    floor: '2nd Floor',
-    category: 'academic',
-    department: 'ECE',
-    aliases: ['ece faculty', 'teachers'],
-    distance: 130,
-    estimatedTime: 3,
-    mapImage: 'https://placehold.co/800x600/e0f2fe/0369a1?text=Map:+ECE+Staff+Room',
-    steps: [
-      { instruction: 'Take stairs to 2nd Floor', icon: 'stairs-up' },
-      { instruction: 'Turn Right', icon: 'turn-right' },
-      { instruction: 'Room 205 adjacent to HOD cabin', icon: 'destination' }
-    ]
-  },
-  {
-    id: 'ece-lab-1',
-    name: 'VLSI & Embedded Systems Lab',
-    block: 'Main Campus',
-    floor: '2nd Floor',
-    category: 'academic',
-    department: 'ECE',
-    aliases: ['vlsi lab', 'embedded lab', 'ece lab'],
-    distance: 140,
-    estimatedTime: 3,
-    mapImage: 'https://placehold.co/800x600/e0f2fe/0369a1?text=Map:+VLSI+Lab',
-    steps: [
-      { instruction: 'Take stairs to 2nd Floor', icon: 'stairs-up' },
-      { instruction: 'Go straight to the end of left wing', icon: 'straight' }
-    ]
-  },
-
-  // --- CSE Department ---
-  {
-    id: 'cse-hod',
-    name: 'CSE HOD Cabin',
-    block: 'Main Campus',
-    floor: '3rd Floor',
-    category: 'academic',
-    department: 'CSE',
-    aliases: ['cse head', 'computer hod'],
-    distance: 180,
-    estimatedTime: 4,
-    mapImage: 'https://placehold.co/800x600/e0f2fe/0369a1?text=Map:+CSE+HOD',
-    steps: [
-      { instruction: 'Take elevator to 3rd Floor', icon: 'stairs-up' },
-      { instruction: 'Turn left', icon: 'turn-left' },
-      { instruction: 'First room on the left', icon: 'destination' }
-    ]
-  },
-  {
-    id: 'cse-lab-1',
-    name: 'AI & ML Lab',
-    block: 'Main Campus',
-    floor: '3rd Floor',
-    category: 'academic',
-    department: 'CSE',
-    aliases: ['computer lab', 'ai lab'],
-    distance: 200,
-    estimatedTime: 5,
-    mapImage: 'https://placehold.co/800x600/e0f2fe/0369a1?text=Map:+AI+Lab',
-    steps: [
-      { instruction: 'Take elevator to 3rd Floor', icon: 'stairs-up' },
-      { instruction: 'Walk straight past the library', icon: 'straight' }
-    ]
-  },
-
-  // --- EEE Department ---
-  {
-    id: 'eee-hod',
-    name: 'EEE HOD Cabin',
-    block: 'Main Campus',
-    floor: '1st Floor',
-    category: 'academic',
-    department: 'EEE',
-    aliases: ['electrical hod'],
-    distance: 90,
-    estimatedTime: 2,
-    mapImage: 'https://placehold.co/800x600/e0f2fe/0369a1?text=Map:+EEE+HOD',
-    steps: [
-      { instruction: 'Take stairs to 1st Floor', icon: 'stairs-up' },
-      { instruction: 'Turn left', icon: 'turn-left' },
-      { instruction: 'Room 102', icon: 'destination' }
-    ]
-  },
-
-  // --- Amenities ---
-  {
-    id: 'library',
-    name: 'Central Library',
-    block: 'Main Campus',
-    floor: '3rd Floor',
-    category: 'amenity',
-    aliases: ['library', 'books', 'reading room'],
-    distance: 200,
-    estimatedTime: 5,
-    mapImage: 'https://placehold.co/800x600/f0fdf4/15803d?text=Map:+Main+Campus+Block+3rd+Floor',
-    steps: [
-      { instruction: 'Go straight towards the elevators', icon: 'straight' },
-      { instruction: 'Take the elevator to the 3rd floor', icon: 'stairs-up' },
-      { instruction: 'Turn right immediately', icon: 'turn-right' },
-      { instruction: 'Walk to the end of the hall', icon: 'straight' },
-      { instruction: 'Entrance is double glass doors', icon: 'destination' },
-    ]
-  },
-  {
-    id: 'girls-waiting',
-    name: 'Girls Waiting Room',
-    block: 'Main Campus',
-    floor: 'Ground Floor',
-    category: 'amenity',
-    aliases: ['waiting hall', 'restroom'],
-    distance: 60,
-    estimatedTime: 2,
-    mapImage: 'https://placehold.co/800x600/f0fdf4/15803d?text=Map:+Girls+Waiting',
-    steps: [
-      { instruction: 'Right wing of Ground Floor', icon: 'turn-right' }
-    ]
-  },
-  {
-    id: 'seminar-hall',
-    name: 'Seminar Hall 1',
-    block: 'Main Campus',
-    floor: '1st Floor',
-    category: 'academic',
-    department: 'Common',
-    aliases: ['seminar hall', 'auditorium', 'hall'],
-    distance: 80,
-    estimatedTime: 2,
-    mapImage: 'https://placehold.co/800x600/faf5ff/7e22ce?text=Map:+Main+Campus+1st+Floor',
-    steps: [
-      { instruction: 'Take the main stairs to 1st floor', icon: 'stairs-up' },
-      { instruction: 'Turn right', icon: 'turn-right' },
-      { instruction: 'It is the first large door on the left', icon: 'destination' },
-    ]
-  },
-
-  // --- External Blocks ---
+  // =====================================================================
+  // EXTERNAL BLOCKS (Direct Navigation)
+  // =====================================================================
   {
     id: 'mba-block',
     name: 'MBA Block',
-    block: 'MBA Building',
+    block: 'MBA Block',
     floor: 'Ground',
     category: 'academic',
-    aliases: ['mba', 'management block'],
-    distance: 400,
-    estimatedTime: 8,
-    mapImage: 'https://placehold.co/800x600/fff1f2/be123c?text=Map:+MBA+Block+Overview',
+    program: 'MBA',
+    aliases: ['mba', 'management block', 'business school'],
+    distance: 150,
+    estimatedTime: 3,
+    mapImage: 'https://placehold.co/800x600/be123c/fff1f2?text=MBA+Block',
     steps: [
-      { instruction: 'Exit the Main Campus building from the rear gate', icon: 'straight' },
-      { instruction: 'Cross the parking lot', icon: 'straight' },
-      { instruction: 'The MBA block is the red brick building ahead', icon: 'destination' },
+      { instruction: 'Exit Main Block.', icon: 'straight' },
+      { instruction: 'Turn Right and cross the Students Parking.', icon: 'turn-right' },
+      { instruction: 'The MBA Block is the building straight ahead.', icon: 'destination' }
+    ]
+  },
+  {
+    id: 'diploma-block',
+    name: 'Diploma Block',
+    block: 'Diploma Block',
+    floor: 'Ground',
+    category: 'academic',
+    program: 'Diploma',
+    aliases: ['polytechnic', 'diploma'],
+    distance: 160,
+    estimatedTime: 3,
+    mapImage: 'https://placehold.co/800x600/c2410c/fff7ed?text=Diploma+Block',
+    steps: [
+      { instruction: 'Exit Main Block.', icon: 'straight' },
+      { instruction: 'Turn Right.', icon: 'turn-right' },
+      { instruction: 'Walk straight past the parking.', icon: 'straight' },
+      { instruction: 'The Diploma Block is on your Right.', icon: 'destination' }
+    ]
+  },
+  {
+    id: 'grounds',
+    name: 'College Ground',
+    block: 'Grounds',
+    floor: 'Open Area',
+    category: 'amenity',
+    aliases: ['playground', 'cricket', 'sports'],
+    distance: 350,
+    estimatedTime: 6,
+    mapImage: 'https://placehold.co/800x600/3f6212/ecfccb?text=College+Ground',
+    steps: [
+      { instruction: 'Exit Main Block and Turn Right.', icon: 'turn-right' },
+      { instruction: 'Walk past Diploma Block.', icon: 'straight' },
+      { instruction: 'The Ground entrance is on your Left.', icon: 'destination' }
     ]
   },
   {
     id: 'canteen',
-    name: 'College Canteen',
-    block: 'Grounds',
+    name: 'Canteen',
+    block: 'Amenities',
     floor: 'Ground',
     category: 'amenity',
-    aliases: ['canteen', 'food', 'cafeteria', 'mess', 'lunch'],
-    distance: 150,
-    estimatedTime: 4,
-    mapImage: 'https://placehold.co/800x600/fefce8/a16207?text=Map:+Campus+Grounds',
+    aliases: ['food', 'lunch', 'cafeteria'],
+    distance: 300,
+    estimatedTime: 5,
+    mapImage: 'https://placehold.co/800x600/a16207/fefce8?text=Canteen',
     steps: [
-      { instruction: 'Exit via the side entrance', icon: 'turn-right' },
-      { instruction: 'Follow the paved path', icon: 'straight' },
-      { instruction: 'The Canteen is the circular building', icon: 'destination' },
+      { instruction: 'Exit Main Block and Turn Right.', icon: 'turn-right' },
+      { instruction: 'Cross Students Parking towards MBA Block.', icon: 'straight' },
+      { instruction: 'Walk behind MBA Block to find the Canteen.', icon: 'destination' }
     ]
-  }
+  },
+  {
+    id: 'mess',
+    name: 'Student Mess',
+    block: 'Amenities',
+    floor: 'Ground',
+    category: 'amenity',
+    aliases: ['hostel mess', 'dining'],
+    distance: 320,
+    estimatedTime: 5,
+    mapImage: 'https://placehold.co/800x600/a16207/fefce8?text=Mess',
+    steps: [
+      { instruction: 'Exit Main Block and Turn Right.', icon: 'turn-right' },
+      { instruction: 'Walk past Diploma Block.', icon: 'straight' },
+      { instruction: 'The Mess is the last building on your Right.', icon: 'destination' }
+    ]
+  },
+
+  // =====================================================================
+  // MAIN BLOCK - ADMINISTRATION
+  // =====================================================================
+  {
+    id: 'principal-chamber',
+    name: "Principal's Chamber",
+    block: 'Main Block',
+    floor: 'Ground Floor',
+    category: 'administrative',
+    aliases: ['principal', 'director'],
+    distance: 40,
+    estimatedTime: 1,
+    steps: mainBlockSteps('Ground Floor', 'Right', "Principal's Office")
+  },
+  {
+    id: 'admin-office',
+    name: 'Administrative Office',
+    block: 'Main Block',
+    floor: 'Ground Floor',
+    category: 'administrative',
+    aliases: ['office', 'fees', 'accounts'],
+    distance: 30,
+    estimatedTime: 1,
+    steps: mainBlockSteps('Ground Floor', 'Left', "Admin Office")
+  },
+  {
+    id: 'exam-cell',
+    name: 'Examination Cell',
+    block: 'Main Block',
+    floor: '1st Floor',
+    category: 'administrative',
+    aliases: ['exam section', 'results'],
+    distance: 120,
+    estimatedTime: 3,
+    steps: mainBlockSteps('1st Floor', 'Left', "Exam Cell")
+  },
+  {
+    id: 'placement-cell',
+    name: 'Placement Cell',
+    block: 'Main Block',
+    floor: '2nd Floor',
+    category: 'administrative',
+    aliases: ['tpo', 'jobs', 'interview'],
+    distance: 150,
+    estimatedTime: 3,
+    steps: mainBlockSteps('2nd Floor', 'Right', "Placement Cell")
+  },
+
+  // =====================================================================
+  // MAIN BLOCK - ACADEMIC - B.TECH
+  // =====================================================================
+  
+  // --- B.Tech CSE ---
+  ...createDeptLocations('CSE', 'B.Tech', 'Computer Science & Engg', '3rd Floor'),
+  // --- B.Tech ECE ---
+  ...createDeptLocations('ECE', 'B.Tech', 'Electronics & Comm Engg', '2nd Floor'),
+  // --- B.Tech EEE ---
+  ...createDeptLocations('EEE', 'B.Tech', 'Electrical & Electronics', '1st Floor'),
+  // --- B.Tech MECH ---
+  ...createDeptLocations('MECH', 'B.Tech', 'Mechanical Engineering', 'Ground Floor'),
+  // --- B.Tech CIVIL ---
+  ...createDeptLocations('CIVIL', 'B.Tech', 'Civil Engineering', 'Ground Floor'),
+
+  // =====================================================================
+  // MAIN BLOCK - ACADEMIC - M.TECH
+  // =====================================================================
+  
+  // --- M.Tech Depts ---
+  ...createDeptLocations('CSE', 'M.Tech', 'Computer Science & Engg', '3rd Floor'),
+  ...createDeptLocations('ECE', 'M.Tech', 'Digital Systems', '2nd Floor'),
+  ...createDeptLocations('EPS', 'M.Tech', 'Power Systems', '1st Floor'),
+  ...createDeptLocations('VLSI', 'M.Tech', 'VLSI & Embedded Systems', '2nd Floor'),
+  ...createDeptLocations('SE', 'M.Tech', 'Structural Engineering', 'Ground Floor'),
+  ...createDeptLocations('TE', 'M.Tech', 'Thermal Engineering', 'Ground Floor'),
+  ...createDeptLocations('CAD', 'M.Tech', 'CAD/CAM', 'Ground Floor'),
+  ...createDeptLocations('AIML', 'M.Tech', 'AI & Machine Learning', '3rd Floor'),
+
+  // =====================================================================
+  // MAIN BLOCK - AMENITIES (Floor Wise)
+  // =====================================================================
+  ...createMainBlockAmenities('Ground Floor'),
+  ...createMainBlockAmenities('1st Floor'),
+  ...createMainBlockAmenities('2nd Floor'),
+  ...createMainBlockAmenities('3rd Floor'),
+
 ];
 
 export const FEES: FeeStructure[] = [
-  // B.Tech Data from Prompt
-  { 
-    id: 'bt-cse', 
-    course: 'B.Tech', 
-    branch: 'CSE', 
-    seats: 125, 
-    annualFee: 120000, 
-    description: 'Computer Science & Engineering' 
-  },
-  { 
-    id: 'bt-ece', 
-    course: 'B.Tech', 
-    branch: 'ECE', 
-    seats: 90, 
-    annualFee: 80000, 
-    description: 'Electronics & Communication Engineering'
-  },
-  { 
-    id: 'bt-eee', 
-    course: 'B.Tech', 
-    branch: 'EEE', 
-    seats: 65, 
-    annualFee: 70000, 
-    description: 'Electrical & Electronics Engineering'
-  },
-  { 
-    id: 'bt-mech', 
-    course: 'B.Tech', 
-    branch: 'MECH', 
-    seats: 50, 
-    annualFee: 70000, 
-    description: 'Mechanical Engineering'
-  },
-  
-  // Dummy data for other courses to ensure app robustness if selected
-  { id: 'mba-gen', course: 'MBA', branch: 'General', seats: 60, annualFee: 50000, description: 'Master of Business Administration' },
-  { id: 'dip-ece', course: 'Diploma', branch: 'ECE', seats: 60, annualFee: 27000, description: 'Diploma in Electronics' },
+  // B.Tech
+  { id: 'bt-cse', course: 'B.Tech', branch: 'CSE', seats: 125, annualFee: 120000 },
+  { id: 'bt-ece', course: 'B.Tech', branch: 'ECE', seats: 90, annualFee: 80000 },
+  { id: 'bt-eee', course: 'B.Tech', branch: 'EEE', seats: 65, annualFee: 70000 },
+  { id: 'bt-mech', course: 'B.Tech', branch: 'MECH', seats: 50, annualFee: 70000 },
+  { id: 'bt-civil', course: 'B.Tech', branch: 'CIVIL', seats: 60, annualFee: 65000 },
+  // M.Tech
+  { id: 'mt-cse', course: 'M.Tech', branch: 'CSE', seats: 18, annualFee: 60000 },
+  { id: 'mt-vlsi', course: 'M.Tech', branch: 'VLSI', seats: 18, annualFee: 60000 },
+  { id: 'mt-ps', course: 'M.Tech', branch: 'Power Systems', seats: 18, annualFee: 60000 },
+  // MBA & Diploma
+  { id: 'mba-gen', course: 'MBA', branch: 'General', seats: 60, annualFee: 50000 },
+  { id: 'dip-ece', course: 'Diploma', branch: 'ECE', seats: 60, annualFee: 27000 },
+  { id: 'dip-mech', course: 'Diploma', branch: 'MECH', seats: 60, annualFee: 27000 },
 ];

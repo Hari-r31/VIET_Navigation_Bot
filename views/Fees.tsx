@@ -42,6 +42,14 @@ const Fees: React.FC = () => {
       setSelectedBranch(e.target.value);
   }
 
+  const handleBack = () => {
+      if (window.history.length > 1) {
+          navigate(-1);
+      } else {
+          navigate('/');
+      }
+  }
+
   const feeData: FeeStructure | undefined = FEES.find(
     f => f.course === selectedCourse && f.branch === selectedBranch
   );
@@ -63,11 +71,11 @@ const Fees: React.FC = () => {
       <div className="relative z-10 flex-none p-4 pt-6 flex items-center justify-center">
           <div className="absolute left-4 top-6">
             <button 
-                onClick={() => navigate('/')} 
+                onClick={handleBack} 
                 className="flex items-center gap-2 bg-white/10 backdrop-blur-md text-white px-4 py-2 rounded-xl border border-white/20 hover:bg-white/20 font-semibold transition-all group text-sm"
             >
                 <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-                Home
+                Back
             </button>
           </div>
 

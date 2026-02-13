@@ -14,6 +14,7 @@ export interface LocationData {
   floor: string;
   category: LocationCategory;
   department?: string; // e.g., 'ECE', 'CSE', 'Civil'
+  program?: 'B.Tech' | 'M.Tech' | 'Diploma' | 'MBA'; // New field for hierarchy
   aliases: string[];
   distance: number; // meters
   estimatedTime: number; // minutes
