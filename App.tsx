@@ -14,7 +14,8 @@ const KioskLayout = () => {
   return (
     <div className="flex flex-col h-full bg-slate-50 relative">
       <Header />
-      <main className="flex-1 overflow-y-auto p-6 pb-24">
+      {/* Reduced bottom padding to maximize view area while keeping Assistant button visible */}
+      <main className="flex-1 overflow-y-auto p-4 pb-20">
         <Outlet />
       </main>
       <Assistant />
