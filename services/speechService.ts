@@ -20,15 +20,13 @@ interface Window {
 
 // --- Text to Speech (TTS) ---
 
-let synthesisVoice: SpeechSynthesisVoice | null = null;
+// Keep a reference to the utterance to prevent garbage collection
+let currentUtterance: SpeechSynthesisUtterance | null = null;
 
 const getVoiceForLang = (langCode: string): SpeechSynthesisVoice | null => {
   const voices = window.speechSynthesis.getVoices();
   const shortLang = langCode.split('-')[0]; // 'te', 'hi', 'en'
   
-  // console.log(`Looking for voice: ${langCode} (short: ${shortLang})`);
-  // console.log('Available voices:', voices.map(v => `${v.name} (${v.lang})`).join(', '));
-
   // Priority 1: Google voices (usually higher quality) with exact lang match
   let voice = voices.find(v => v.lang === langCode && v.name.includes('Google'));
 
@@ -57,9 +55,19 @@ const getVoiceForLang = (langCode: string): SpeechSynthesisVoice | null => {
   return voice || null;
 };
 
+export const isVoiceAvailable = (langCode: string): boolean => {
+    // Map simple lang codes to BCP 47
+    let targetLang = 'en-IN';
+    if (langCode === 'te') targetLang = 'te-IN';
+    if (langCode === 'hi') targetLang = 'hi-IN';
+    
+    return !!getVoiceForLang(targetLang);
+};
+
 export const stopSpeaking = () => {
   if ('speechSynthesis' in window) {
     window.speechSynthesis.cancel();
+    currentUtterance = null;
   }
 };
 
@@ -73,6 +81,7 @@ export const speak = (text: string, lang: 'en' | 'te' | 'hi' = 'en') => {
   window.speechSynthesis.cancel();
 
   const utterance = new SpeechSynthesisUtterance(text);
+  currentUtterance = utterance; // Store reference
   
   // Map simple lang codes to BCP 47
   let targetLang = 'en-IN';
@@ -81,11 +90,28 @@ export const speak = (text: string, lang: 'en' | 'te' | 'hi' = 'en') => {
   
   utterance.lang = targetLang;
   
+  // Fix for cutting off: Pause and Resume to keep engine active
+  // This is a known Chrome bug workaround
+  const resumeInfinity = () => {
+      window.speechSynthesis.pause();
+      window.speechSynthesis.resume();
+      if (window.speechSynthesis.speaking) {
+          setTimeout(resumeInfinity, 10000);
+      }
+  };
+
+  utterance.onstart = () => {
+      resumeInfinity();
+  };
+
+  utterance.onend = () => {
+      currentUtterance = null;
+  };
+  
   const speakWithVoice = () => {
       const voice = getVoiceForLang(targetLang);
       if (voice) {
           utterance.voice = voice;
-          // console.log(`Speaking in ${voice.name} (${voice.lang})`);
       } else {
           console.warn(`No voice found for ${targetLang}, using default.`);
       }
