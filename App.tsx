@@ -13,10 +13,10 @@ import { LanguageProvider } from './contexts/LanguageContext';
 // Layout for the main kiosk application
 const KioskLayout = () => {
   return (
-    <div className="flex flex-col h-full bg-slate-50 relative">
+    <div className="flex flex-col h-screen w-screen bg-slate-50 relative overflow-hidden">
       <Header />
       {/* Reduced bottom padding to maximize view area while keeping Assistant button visible */}
-      <main className="flex-1 overflow-y-auto p-4 pb-20 w-full max-w-[1600px] mx-auto">
+      <main className="flex-1 overflow-y-auto p-4 pb-20 w-full max-w-[1600px] mx-auto scroll-smooth">
         <Outlet />
       </main>
       <Assistant />
