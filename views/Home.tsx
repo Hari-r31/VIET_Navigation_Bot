@@ -7,20 +7,12 @@ import { translations } from '../data/translations';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
-  const { t, language, setLanguage, speak } = useLanguage();
+  const { t, language, speak } = useLanguage();
 
   useEffect(() => {
     // Announce welcome message on mount
     speak(t.assist_welcome);
   }, []); // Run once on mount
-
-  const handleLanguageChange = (lang: 'en' | 'te' | 'hi') => {
-    setLanguage(lang);
-    // Speak in the NEW language
-    setTimeout(() => {
-        speak(translations[lang].speak_lang_changed);
-    }, 100);
-  };
 
   const handleNavigation = (path: string, announcement: string) => {
       speak(announcement);
@@ -28,33 +20,11 @@ const Home: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full gap-4 md:gap-6 animate-in fade-in duration-500">
+    <div className="flex flex-col min-h-full gap-4 md:gap-6 animate-in fade-in duration-500 pb-6">
       
-      {/* 1. Language Toggle & Hero */}
+      {/* 1. Hero */}
       <div className="flex-shrink-0 text-center py-2 md:py-4 relative">
         
-        {/* Prominent Language Switcher */}
-        <div className="absolute top-0 right-0 md:right-10 flex gap-2">
-           <button 
-             onClick={() => handleLanguageChange('en')}
-             className={`flex flex-col items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-xl border-2 transition-all ${language === 'en' ? 'bg-blue-600 border-blue-600 text-white shadow-lg scale-105' : 'bg-white border-slate-200 text-slate-500 hover:border-blue-300'}`}
-           >
-             <span className="text-sm md:text-lg font-bold">Eng</span>
-           </button>
-           <button 
-             onClick={() => handleLanguageChange('te')}
-             className={`flex flex-col items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-xl border-2 transition-all ${language === 'te' ? 'bg-blue-600 border-blue-600 text-white shadow-lg scale-105' : 'bg-white border-slate-200 text-slate-500 hover:border-blue-300'}`}
-           >
-             <span className="text-sm md:text-lg font-bold">తెలు</span>
-           </button>
-           <button 
-             onClick={() => handleLanguageChange('hi')}
-             className={`flex flex-col items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-xl border-2 transition-all ${language === 'hi' ? 'bg-blue-600 border-blue-600 text-white shadow-lg scale-105' : 'bg-white border-slate-200 text-slate-500 hover:border-blue-300'}`}
-           >
-             <span className="text-sm md:text-lg font-bold">हिन्दी</span>
-           </button>
-        </div>
-
         <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight mb-2 md:mb-4 pt-4 md:pt-0">
           {language === 'en' ? (
               <>Interactive <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">Campus Guide</span></>
@@ -69,12 +39,12 @@ const Home: React.FC = () => {
       </div>
 
       {/* 2. Primary Actions (Directions & Fees) */}
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 min-h-0">
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 min-h-[300px]">
         
         {/* Directions Card - Primary Action */}
         <button 
           onClick={() => handleNavigation('/directions', t.card_directions_title)}
-          className="relative overflow-hidden rounded-3xl bg-blue-600 text-white p-6 md:p-8 lg:p-10 text-left group shadow-xl hover:shadow-2xl hover:bg-blue-700 transition-all flex flex-col justify-between h-full w-full"
+          className="relative overflow-hidden rounded-3xl bg-blue-600 text-white p-6 md:p-8 lg:p-10 text-left group shadow-xl hover:shadow-2xl hover:bg-blue-700 transition-all flex flex-col justify-between h-full w-full min-h-[200px]"
         >
           {/* Decor */}
           <div className="absolute right-0 top-0 w-40 h-40 md:w-60 md:h-60 lg:w-80 lg:h-80 bg-white/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
@@ -100,7 +70,7 @@ const Home: React.FC = () => {
         {/* Fees Card - Secondary Action */}
         <button 
           onClick={() => handleNavigation('/fees', t.card_fees_title)}
-          className="relative overflow-hidden rounded-3xl bg-white border border-slate-200 text-slate-900 p-6 md:p-8 lg:p-10 text-left group shadow-xl hover:shadow-2xl hover:border-emerald-400 transition-all flex flex-col justify-between h-full w-full"
+          className="relative overflow-hidden rounded-3xl bg-white border border-slate-200 text-slate-900 p-6 md:p-8 lg:p-10 text-left group shadow-xl hover:shadow-2xl hover:border-emerald-400 transition-all flex flex-col justify-between h-full w-full min-h-[200px]"
         >
           {/* Decor */}
           <div className="absolute right-0 top-0 w-40 h-40 md:w-60 md:h-60 lg:w-80 lg:h-80 bg-emerald-50 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>

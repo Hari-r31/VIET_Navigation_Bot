@@ -1,12 +1,12 @@
 
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, Map, GraduationCap, Languages } from 'lucide-react';
+import { Home, Map, GraduationCap, Languages, Volume2, VolumeX } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../data/translations';
 
 const Header: React.FC = () => {
-  const { t, language, setLanguage, speak } = useLanguage();
+  const { t, language, setLanguage, speak, isVoiceEnabled, toggleVoice } = useLanguage();
 
   const handleLanguageChange = (lang: 'en' | 'te' | 'hi') => {
       setLanguage(lang);
@@ -32,6 +32,15 @@ const Header: React.FC = () => {
       </div>
 
       <div className="flex items-center gap-4">
+        {/* Voice Toggle */}
+        <button
+            onClick={toggleVoice}
+            className={`p-2 rounded-full transition-all ${isVoiceEnabled ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-400'}`}
+            title={isVoiceEnabled ? "Mute Voice" : "Enable Voice"}
+        >
+            {isVoiceEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
+        </button>
+
         {/* Language Switcher Mini */}
         <div className="flex bg-slate-100 rounded-lg p-1">
           <button 

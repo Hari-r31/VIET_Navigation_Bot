@@ -480,7 +480,7 @@ const Directions: React.FC = () => {
             </div>
         )}
 
-        <div className={`flex-1 min-h-0 flex justify-center ${selectedRoute ? 'items-stretch pb-2' : 'items-start pt-8 pb-20'} overflow-hidden`}>
+        <div className={`flex-1 min-h-0 flex justify-center ${selectedRoute ? 'items-stretch pb-2' : 'items-start pt-8 pb-20'} overflow-y-auto`}>
             {selectedRoute ? (
                 // --- FULL SCREEN ROUTE DETAILS ---
                 <div className="w-full h-full max-w-6xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">

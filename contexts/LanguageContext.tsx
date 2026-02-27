@@ -13,6 +13,8 @@ interface LanguageContextType {
   t: typeof translations['en'];
   speak: (text: string) => void;
   stopSpeaking: () => void;
+  isVoiceEnabled: boolean;
+  toggleVoice: () => void;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -20,6 +22,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [language, setLanguage] = useState<Language>('en');
   const [showHelp, setShowHelp] = useState(false);
+  const [isVoiceEnabled, setIsVoiceEnabled] = useState(true);
 
   const handleSetLanguage = (lang: Language) => {
       setLanguage(lang);
@@ -44,19 +47,35 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
   };
 
   const speak = useCallback((text: string) => {
-    speakService(text, language);
-  }, [language]);
+    if (isVoiceEnabled) {
+        speakService(text, language);
+    }
+  }, [language, isVoiceEnabled]);
 
   const stopSpeaking = useCallback(() => {
     stopSpeakingService();
   }, []);
+
+  const toggleVoice = useCallback(() => {
+      setIsVoiceEnabled(prev => {
+          const newState = !prev;
+          if (!newState) {
+              stopSpeakingService();
+          } else {
+              speakService(language === 'en' ? "Voice enabled" : (language === 'te' ? "వాయిస్ ప్రారంభించబడింది" : "आवाज़ सक्षम की गई"), language);
+          }
+          return newState;
+      });
+  }, [language]);
 
   const value = {
     language,
     setLanguage: handleSetLanguage,
     t: translations[language],
     speak,
-    stopSpeaking
+    stopSpeaking,
+    isVoiceEnabled,
+    toggleVoice
   };
 
   return (
