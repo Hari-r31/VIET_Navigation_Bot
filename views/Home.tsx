@@ -20,7 +20,7 @@ const Home: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-full gap-4 md:gap-6 animate-in fade-in duration-500 pb-6">
+    <div className="flex flex-col h-full gap-2 md:gap-4 animate-in fade-in duration-500">
       
       {/* 1. Hero */}
       <div className="flex-shrink-0 text-center py-2 md:py-4 relative">
@@ -39,12 +39,12 @@ const Home: React.FC = () => {
       </div>
 
       {/* 2. Primary Actions (Directions & Fees) */}
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 min-h-[300px]">
+      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 min-h-0">
         
         {/* Directions Card - Primary Action */}
         <button 
           onClick={() => handleNavigation('/directions', t.card_directions_title)}
-          className="relative overflow-hidden rounded-3xl bg-blue-600 text-white p-6 md:p-8 lg:p-10 text-left group shadow-xl hover:shadow-2xl hover:bg-blue-700 transition-all flex flex-col justify-between h-full w-full min-h-[200px]"
+          className="relative overflow-hidden rounded-3xl bg-blue-600 text-white p-6 md:p-8 lg:p-10 text-left group shadow-xl hover:shadow-2xl hover:bg-blue-700 transition-all flex flex-col justify-between h-full w-full"
         >
           {/* Decor */}
           <div className="absolute right-0 top-0 w-40 h-40 md:w-60 md:h-60 lg:w-80 lg:h-80 bg-white/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
@@ -70,7 +70,7 @@ const Home: React.FC = () => {
         {/* Fees Card - Secondary Action */}
         <button 
           onClick={() => handleNavigation('/fees', t.card_fees_title)}
-          className="relative overflow-hidden rounded-3xl bg-white border border-slate-200 text-slate-900 p-6 md:p-8 lg:p-10 text-left group shadow-xl hover:shadow-2xl hover:border-emerald-400 transition-all flex flex-col justify-between h-full w-full min-h-[200px]"
+          className="relative overflow-hidden rounded-3xl bg-white border border-slate-200 text-slate-900 p-6 md:p-8 lg:p-10 text-left group shadow-xl hover:shadow-2xl hover:border-emerald-400 transition-all flex flex-col justify-between h-full w-full"
         >
           {/* Decor */}
           <div className="absolute right-0 top-0 w-40 h-40 md:w-60 md:h-60 lg:w-80 lg:h-80 bg-emerald-50 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
