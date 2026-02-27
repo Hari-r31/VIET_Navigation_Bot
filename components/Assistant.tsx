@@ -5,24 +5,38 @@ import { useNavigate } from 'react-router-dom';
 import { processUserMessage } from '../services/agentService';
 import { ChatMessage, AgentContext } from '../types';
 import VoiceSearchModal from './VoiceSearchModal';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const Assistant: React.FC = () => {
   const navigate = useNavigate();
+  const { t, language, speak } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [showVoiceModal, setShowVoiceModal] = useState(false);
   const [inputValue, setInputValue] = useState('');
   
   // Conversation State
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    { 
-      id: '1', 
-      sender: 'assistant', 
-      text: "Welcome to VIET! 🎓 I am your AI Campus Assistant. I can guide you to any location or provide fee details. How may I help you?", 
-      timestamp: Date.now() 
-    }
-  ]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [agentContext, setAgentContext] = useState<AgentContext>({});
   const [isTyping, setIsTyping] = useState(false);
+
+  // Initialize greeting on mount or language change
+  useEffect(() => {
+    setMessages([
+      { 
+        id: '1', 
+        sender: 'assistant', 
+        text: t.assist_welcome, 
+        timestamp: Date.now() 
+      }
+    ]);
+  }, [t]);
+
+  // Speak welcome when opened
+  useEffect(() => {
+      if (isOpen) {
+          speak(t.assist_welcome);
+      }
+  }, [isOpen]);
 
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -42,6 +56,15 @@ const Assistant: React.FC = () => {
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [isOpen]);
+
+  // Determine Language Code for Speech API
+  const getLangCode = () => {
+    switch (language) {
+      case 'te': return 'te-IN';
+      case 'hi': return 'hi-IN';
+      default: return 'en-US';
+    }
+  };
 
   // Handle Voice Result from Modal
   const handleVoiceResult = (text: string) => {
@@ -70,8 +93,8 @@ const Assistant: React.FC = () => {
     const delay = Math.floor(Math.random() * 600) + 600;
     
     setTimeout(() => {
-       // 3. Process via Agent Service
-       const response = processUserMessage(text, agentContext);
+       // 3. Process via Agent Service (Passing language)
+       const response = processUserMessage(text, agentContext, language);
        
        setIsTyping(false);
        setAgentContext(response.updatedContext);
@@ -83,6 +106,9 @@ const Assistant: React.FC = () => {
          timestamp: Date.now()
        };
        setMessages(prev => [...prev, botMsg]);
+       
+       // Speak the response
+       speak(response.message);
 
        // 4. Perform Action if any
        if (response.action.type === 'NAVIGATE') {
@@ -104,7 +130,7 @@ const Assistant: React.FC = () => {
     setMessages([{ 
         id: Date.now().toString(), 
         sender: 'assistant', 
-        text: "Conversation cleared. I can help with Navigation or Course Details.", 
+        text: t.assist_welcome, 
         timestamp: Date.now() 
     }]);
     setAgentContext({});
@@ -115,7 +141,8 @@ const Assistant: React.FC = () => {
       <VoiceSearchModal 
         isOpen={showVoiceModal} 
         onClose={() => setShowVoiceModal(false)} 
-        onResult={handleVoiceResult} 
+        onResult={handleVoiceResult}
+        langCode={getLangCode()}
       />
 
       {/* Floating Action Button */}
@@ -227,10 +254,10 @@ const Assistant: React.FC = () => {
                 {messages.length < 3 && !isTyping && (
                     <div className="flex gap-2 mb-3 overflow-x-auto pb-1 no-scrollbar">
                         <button onClick={() => handleSubmit(undefined, "I need navigation help")} className="whitespace-nowrap px-3 py-1.5 bg-slate-100 hover:bg-blue-50 text-slate-600 text-xs font-medium rounded-full border border-slate-200 transition-colors">
-                            📍 Navigation
+                            {t.assist_chip_nav}
                         </button>
                         <button onClick={() => handleSubmit(undefined, "Tell me about course fees")} className="whitespace-nowrap px-3 py-1.5 bg-slate-100 hover:bg-blue-50 text-slate-600 text-xs font-medium rounded-full border border-slate-200 transition-colors">
-                            💰 Course Details
+                            {t.assist_chip_fees}
                         </button>
                     </div>
                 )}
@@ -245,7 +272,7 @@ const Assistant: React.FC = () => {
                             type="text"
                             value={inputValue}
                             onChange={(e) => setInputValue(e.target.value)}
-                            placeholder="Type your question..."
+                            placeholder={t.assist_placeholder}
                             className="w-full pl-4 pr-10 py-3.5 bg-slate-100 border-transparent focus:bg-white border focus:border-blue-500 rounded-2xl focus:outline-none transition-all text-slate-800 placeholder:text-slate-400 shadow-inner"
                             disabled={isTyping}
                         />

@@ -1,290 +1,450 @@
 
 import { LocationData, FeeStructure } from '../types';
 
-// Helper to generate steps
-const mainBlockSteps = (floor: string, direction: string, room: string) => [
-  { instruction: 'Start at Main Block Ground Floor Lobby.', icon: 'straight' as const },
-  { instruction: `Go to the ${floor}.`, icon: floor === 'Ground Floor' ? 'straight' as const : 'stairs-up' as const },
-  { instruction: `Turn ${direction} in the corridor.`, icon: direction.includes('Left') ? 'turn-left' as const : 'turn-right' as const },
-  { instruction: `The ${room} is ahead.`, icon: 'destination' as const }
-];
+type Language = 'en' | 'te' | 'hi';
+
+const DICTIONARY = {
+  en: {
+    mainBlock: 'Main Block',
+    mbaBlock: 'MBA Block',
+    diplomaBlock: 'Diploma Block',
+    campusFacilities: 'Campus Facilities',
+    groundFloor: 'Ground Floor',
+    firstFloor: '1st Floor',
+    secondFloor: '2nd Floor',
+    thirdFloor: '3rd Floor',
+    openArea: 'Open Area',
+    start: 'Start at Main Block Ground Floor Lobby.',
+    goTo: 'Go to the',
+    turn: 'Turn',
+    inCorridor: 'in the corridor.',
+    ahead: 'is ahead.',
+    right: 'Right',
+    left: 'Left',
+    straight: 'Straight',
+    hodCabin: 'HOD Cabin',
+    staffRoom: 'Staff Room',
+    classrooms: 'Classrooms',
+    wingFirst: 'The HOD Cabin is the first door in the wing.',
+    wingCenter: 'The Staff Room is located centrally in the wing.',
+    wingCorridor: 'Classrooms are located along the main corridor of this wing.',
+    adminSection: 'Admin',
+    dept: 'Department',
+    utils: 'Utilities Area',
+    washroomBoys: 'Boys Washroom',
+    washroomGirls: 'Girls Washroom',
+    drinkingWater: 'Drinking Water',
+    girlsRestRoom: 'Girls Rest Room',
+    locBoysWashroom: 'Located near the central staircase.',
+    locGirlsWashroom: 'Located at the end of the corridor.',
+    locWater: 'Water outlet is located near the washrooms.',
+    locGirlsRest: 'Opposite to the Girls Washroom.',
+    exitMain: 'Exit Main Block.',
+    crossParking: 'Turn Right and cross the Students Parking.',
+    mbaAhead: 'The MBA Block is the building straight ahead.',
+    pastParking: 'Walk straight past the parking.',
+    dipRight: 'The Diploma Block is on your Right.',
+    exitRight: 'Exit Main Block and Turn Right.',
+    pastDiploma: 'Walk past Diploma Block.',
+    groundLeft: 'The Ground entrance is on your Left.',
+    behindMba: 'Walk behind MBA Block to find the Canteen.',
+    messRight: 'The Mess is the last building on your Right.',
+    principalOffice: "Principal's Office",
+    adminOffice: "Admin Office",
+    examCell: "Exam Cell",
+    placementCell: "Placement Cell"
+  },
+  te: {
+    mainBlock: 'మెయిన్ బ్లాక్',
+    mbaBlock: 'MBA బ్లాక్',
+    diplomaBlock: 'డిప్లొమా బ్లాక్',
+    campusFacilities: 'క్యాంపస్ సౌకర్యాలు',
+    groundFloor: 'గ్రౌండ్ ఫ్లోర్',
+    firstFloor: '1వ అంతస్తు',
+    secondFloor: '2వ అంతస్తు',
+    thirdFloor: '3వ అంతస్తు',
+    openArea: 'బయట ప్రాంగణం',
+    start: 'మెయిన్ బ్లాక్ గ్రౌండ్ ఫ్లోర్ లాబీలో ప్రారంభించండి.',
+    goTo: 'వెళ్ళండి:',
+    turn: 'తిరగండి:',
+    inCorridor: 'కారిడార్‌లో.',
+    ahead: 'ముందు ఉంది.',
+    right: 'కుడివైపు (Right)',
+    left: 'ఎడమవైపు (Left)',
+    straight: 'నేరుగా (Straight)',
+    hodCabin: 'HOD క్యాబిన్',
+    staffRoom: 'స్టాఫ్ రూమ్',
+    classrooms: 'తరగతి గదులు',
+    wingFirst: 'HOD క్యాబిన్ ఈ వింగ్‌లో మొదటి తలుపు.',
+    wingCenter: 'స్టాఫ్ రూమ్ ఈ వింగ్ మధ్యలో ఉంది.',
+    wingCorridor: 'తరగతి గదులు ఈ వింగ్ ప్రధాన కారిడార్‌లో ఉన్నాయి.',
+    adminSection: 'అడ్మిన్',
+    dept: 'విభాగం',
+    utils: 'యుటిలిటీస్ ఏరియా',
+    washroomBoys: 'బాలుర వాష్‌రూమ్',
+    washroomGirls: 'బాలికల వాష్‌రూమ్',
+    drinkingWater: 'త్రాగు నీరు',
+    girlsRestRoom: 'బాలికల విశ్రాంతి గది',
+    locBoysWashroom: 'సెంట్రల్ మెట్ల దగ్గర ఉంది.',
+    locGirlsWashroom: 'కారిడార్ చివరలో ఉంది.',
+    locWater: 'వాష్‌రూమ్‌ల దగ్గర నీటి సదుపాయం ఉంది.',
+    locGirlsRest: 'బాలికల వాష్‌రూమ్‌కు ఎదురుగా ఉంది.',
+    exitMain: 'మెయిన్ బ్లాక్ నుండి బయటకు రండి.',
+    crossParking: 'కుడివైపు తిరిగి పార్కింగ్ దాటండి.',
+    mbaAhead: 'MBA బ్లాక్ నేరుగా ముందు ఉన్న భవనం.',
+    pastParking: 'పార్కింగ్ దాటి నేరుగా నడవండి.',
+    dipRight: 'డిప్లొమా బ్లాక్ మీ కుడి వైపున ఉంది.',
+    exitRight: 'మెయిన్ బ్లాక్ నుండి బయటకు వచ్చి కుడివైపు తిరగండి.',
+    pastDiploma: 'డిప్లొమా బ్లాక్ దాటి నడవండి.',
+    groundLeft: 'గ్రౌండ్ ప్రవేశం మీ ఎడమ వైపున ఉంది.',
+    behindMba: 'క్యాంటీన్ కోసం MBA బ్లాక్ వెనుక వైపు నడవండి.',
+    messRight: 'మెస్ మీ కుడి వైపున చివరి భవనం.',
+    principalOffice: "ప్రిన్సిపాల్ ఆఫీస్",
+    adminOffice: "అడ్మిన్ ఆఫీస్",
+    examCell: "పరీక్షల విభాగం",
+    placementCell: "ప్లేస్‌మెంట్ సెల్"
+  },
+  hi: {
+    mainBlock: 'मेन ब्लॉक',
+    mbaBlock: 'MBA ब्लॉक',
+    diplomaBlock: 'डिप्लोमा ब्लॉक',
+    campusFacilities: 'कैंपस सुविधाएं',
+    groundFloor: 'ग्राउंड फ्लोर',
+    firstFloor: 'पहली मंजिल',
+    secondFloor: 'दूसरी मंजिल',
+    thirdFloor: 'तीसरी मंजिल',
+    openArea: 'खुला क्षेत्र',
+    start: 'मेन ब्लॉक ग्राउंड फ्लोर लॉबी से शुरू करें।',
+    goTo: 'जाएं:',
+    turn: 'मुड़ें:',
+    inCorridor: 'गलियारे में।',
+    ahead: 'आगे है।',
+    right: 'दाएं (Right)',
+    left: 'बाएं (Left)',
+    straight: 'सीधे (Straight)',
+    hodCabin: 'HOD केबिन',
+    staffRoom: 'स्टाफ रूम',
+    classrooms: 'क्लासरूम',
+    wingFirst: 'HOD केबिन इस विंग में पहला दरवाजा है।',
+    wingCenter: 'स्टाफ रूम विंग के बीच में स्थित है।',
+    wingCorridor: 'क्लासरूम इस विंग के मुख्य गलियारे में हैं।',
+    adminSection: 'एडमिन',
+    dept: 'विभाग',
+    utils: 'सुविधा क्षेत्र',
+    washroomBoys: 'लड़कों का वॉशरूम',
+    washroomGirls: 'लड़कियों का वॉशरूम',
+    drinkingWater: ' पीने का पानी',
+    girlsRestRoom: 'गर्ल्स रेस्ट रूम',
+    locBoysWashroom: 'केंद्रीय सीढ़ियों के पास स्थित है।',
+    locGirlsWashroom: 'गलियारे के अंत में स्थित है।',
+    locWater: 'पानी की सुविधा वॉशरूम के पास है।',
+    locGirlsRest: 'गर्ल्स वॉशरूम के सामने।',
+    exitMain: 'मेन ब्लॉक से बाहर निकलें।',
+    crossParking: 'दाएं मुड़ें और पार्किंग पार करें।',
+    mbaAhead: 'MBA ब्लॉक सीधे सामने वाली इमारत है।',
+    pastParking: 'पार्किंग के आगे सीधे चलें।',
+    dipRight: 'डिप्लोमा ब्लॉक आपके दाईं ओर है।',
+    exitRight: 'मेन ब्लॉक से बाहर निकलें और दाएं मुड़ें।',
+    pastDiploma: 'डिप्लोमा ब्लॉक के आगे चलें।',
+    groundLeft: 'मैदान का प्रवेश द्वार आपके बाईं ओर है।',
+    behindMba: 'कैंटीन के लिए MBA ब्लॉक के पीछे चलें।',
+    messRight: 'मेस आपके दाईं ओर आखिरी इमारत है।',
+    principalOffice: "प्रिंसिपल ऑफिस",
+    adminOffice: "एडमिन ऑफिस",
+    examCell: "परीक्षा कक्ष",
+    placementCell: "प्लेसमेंट सेल"
+  }
+};
+
+// Helper to generate steps with localization
+const mainBlockSteps = (floorKey: string, directionKey: 'right' | 'left' | 'straight', roomName: string, lang: Language) => {
+  const d = DICTIONARY[lang];
+  // Map floor key to localized floor name
+  const floorName = d[floorKey as keyof typeof d] || floorKey;
+  const direction = d[directionKey];
+
+  return [
+    { instruction: d.start, icon: 'straight' as const },
+    { instruction: `${d.goTo} ${floorName}.`, icon: floorKey === 'groundFloor' ? 'straight' as const : 'stairs-up' as const },
+    { instruction: `${d.turn} ${direction} ${d.inCorridor}`, icon: directionKey === 'left' ? 'turn-left' as const : 'turn-right' as const },
+    { instruction: `${roomName} ${d.ahead}`, icon: 'destination' as const }
+  ];
+};
 
 // Helper to generate standardized rooms for a department
-function createDeptLocations(code: string, program: 'B.Tech'|'M.Tech', fullName: string, floor: string): LocationData[] {
+function createDeptLocations(code: string, program: 'B.Tech'|'M.Tech', fullName: string, floorKey: string, lang: Language): LocationData[] {
+  const d = DICTIONARY[lang];
+  const floorName = d[floorKey as keyof typeof d] || floorKey;
   const baseId = `${program.toLowerCase().replace('.', '')}-${code.toLowerCase()}`;
-  const commonSteps = mainBlockSteps(floor, 'Straight', `${code} Department`);
+  
+  // Localized Department Name wrapper
+  const deptName = `${code} ${d.dept}`;
+  const commonSteps = mainBlockSteps(floorKey, 'straight', deptName, lang);
   
   return [
     {
       id: `${baseId}-hod`,
-      name: `${code} HOD Cabin (${program})`,
-      block: 'Main Block',
-      floor: floor,
+      name: `${code} ${d.hodCabin} (${program})`,
+      block: d.mainBlock,
+      floor: floorName,
       category: 'academic',
       department: code,
       program: program,
       aliases: [`${code} hod`, `${fullName} head`],
       distance: 100,
       estimatedTime: 2,
-      steps: [...commonSteps, { instruction: 'The HOD Cabin is the first door in the wing.', icon: 'destination' }]
+      steps: [...commonSteps, { instruction: d.wingFirst, icon: 'destination' }]
     },
     {
       id: `${baseId}-staff`,
-      name: `${code} Staff Room`,
-      block: 'Main Block',
-      floor: floor,
+      name: `${code} ${d.staffRoom}`,
+      block: d.mainBlock,
+      floor: floorName,
       category: 'academic',
       department: code,
       program: program,
       aliases: [`${code} faculty`, `${fullName} teachers`],
       distance: 110,
       estimatedTime: 2,
-      steps: [...commonSteps, { instruction: 'The Staff Room is located centrally in the wing.', icon: 'destination' }]
+      steps: [...commonSteps, { instruction: d.wingCenter, icon: 'destination' }]
     },
     {
       id: `${baseId}-class`,
-      name: `${code} Classrooms`,
-      block: 'Main Block',
-      floor: floor,
+      name: `${code} ${d.classrooms}`,
+      block: d.mainBlock,
+      floor: floorName,
       category: 'academic',
       department: code,
       program: program,
       aliases: [`${code} class`, `${code} lecture hall`],
       distance: 120,
       estimatedTime: 2,
-      steps: [...commonSteps, { instruction: 'Classrooms are located along the main corridor of this wing.', icon: 'destination' }]
+      steps: [...commonSteps, { instruction: d.wingCorridor, icon: 'destination' }]
     }
   ];
 }
 
 // Helper for Floor-wise Amenities
-function createMainBlockAmenities(floor: string): LocationData[] {
-    const suffix = floor.replace(/\s+/g, '-').toLowerCase();
-    // Default direction for amenities usually central or ends
-    const commonSteps = mainBlockSteps(floor, 'Straight', 'Utilities Area'); 
+function createMainBlockAmenities(floorKey: string, lang: Language): LocationData[] {
+    const d = DICTIONARY[lang];
+    const floorName = d[floorKey as keyof typeof d] || floorKey;
+    const suffix = floorKey; // Internal ID suffix
+    const commonSteps = mainBlockSteps(floorKey, 'straight', d.utils, lang); 
 
     return [
         {
             id: `washroom-boys-${suffix}`,
-            name: `Boys Washroom (${floor})`,
-            block: 'Main Block',
-            floor: floor,
+            name: `${d.washroomBoys} (${floorName})`,
+            block: d.mainBlock,
+            floor: floorName,
             category: 'amenity',
             aliases: ['boys toilet', 'gents washroom', 'men restroom'],
             distance: 50,
             estimatedTime: 1,
-            steps: [...commonSteps, { instruction: 'Located near the central staircase.', icon: 'destination' }]
+            steps: [...commonSteps, { instruction: d.locBoysWashroom, icon: 'destination' }]
         },
         {
             id: `washroom-girls-${suffix}`,
-            name: `Girls Washroom (${floor})`,
-            block: 'Main Block',
-            floor: floor,
+            name: `${d.washroomGirls} (${floorName})`,
+            block: d.mainBlock,
+            floor: floorName,
             category: 'amenity',
             aliases: ['girls toilet', 'ladies washroom', 'women restroom'],
             distance: 55,
             estimatedTime: 1,
-            steps: [...commonSteps, { instruction: 'Located at the end of the corridor.', icon: 'destination' }]
+            steps: [...commonSteps, { instruction: d.locGirlsWashroom, icon: 'destination' }]
         },
         {
             id: `water-${suffix}`,
-            name: `Drinking Water (${floor})`,
-            block: 'Main Block',
-            floor: floor,
+            name: `${d.drinkingWater} (${floorName})`,
+            block: d.mainBlock,
+            floor: floorName,
             category: 'amenity',
             aliases: ['water cooler', 'ro water', 'drinking water', 'filter water'],
             distance: 45,
             estimatedTime: 1,
-            steps: [...commonSteps, { instruction: 'Water outlet is located near the washrooms.', icon: 'destination' }]
+            steps: [...commonSteps, { instruction: d.locWater, icon: 'destination' }]
         },
          {
             id: `girls-waiting-${suffix}`,
-            name: `Girls Rest Room (${floor})`,
-            block: 'Main Block',
-            floor: floor,
+            name: `${d.girlsRestRoom} (${floorName})`,
+            block: d.mainBlock,
+            floor: floorName,
             category: 'amenity',
             aliases: ['girls common room', 'waiting room', 'girls lounge'],
             distance: 60,
             estimatedTime: 1,
-            steps: [...commonSteps, { instruction: 'Opposite to the Girls Washroom.', icon: 'destination' }]
+            steps: [...commonSteps, { instruction: d.locGirlsRest, icon: 'destination' }]
         }
     ];
 }
 
-export const LOCATIONS: LocationData[] = [
-  // =====================================================================
-  // EXTERNAL BLOCKS (Direct Navigation)
-  // =====================================================================
-  {
-    id: 'mba-block',
-    name: 'MBA Block',
-    block: 'MBA Block',
-    floor: 'Ground',
-    category: 'academic',
-    program: 'MBA',
-    aliases: ['mba', 'management block', 'business school'],
-    distance: 150,
-    estimatedTime: 3,
-    mapImage: 'https://placehold.co/800x600/be123c/fff1f2?text=MBA+Block',
-    steps: [
-      { instruction: 'Exit Main Block.', icon: 'straight' },
-      { instruction: 'Turn Right and cross the Students Parking.', icon: 'turn-right' },
-      { instruction: 'The MBA Block is the building straight ahead.', icon: 'destination' }
-    ]
-  },
-  {
-    id: 'diploma-block',
-    name: 'Diploma Block',
-    block: 'Diploma Block',
-    floor: 'Ground',
-    category: 'academic',
-    program: 'Diploma',
-    aliases: ['polytechnic', 'diploma'],
-    distance: 160,
-    estimatedTime: 3,
-    mapImage: 'https://placehold.co/800x600/c2410c/fff7ed?text=Diploma+Block',
-    steps: [
-      { instruction: 'Exit Main Block.', icon: 'straight' },
-      { instruction: 'Turn Right.', icon: 'turn-right' },
-      { instruction: 'Walk straight past the parking.', icon: 'straight' },
-      { instruction: 'The Diploma Block is on your Right.', icon: 'destination' }
-    ]
-  },
-  {
-    id: 'grounds',
-    name: 'College Ground',
-    block: 'Campus Facilities',
-    floor: 'Open Area',
-    category: 'amenity',
-    aliases: ['playground', 'cricket', 'sports'],
-    distance: 350,
-    estimatedTime: 6,
-    mapImage: 'https://placehold.co/800x600/3f6212/ecfccb?text=College+Ground',
-    steps: [
-      { instruction: 'Exit Main Block and Turn Right.', icon: 'turn-right' },
-      { instruction: 'Walk past Diploma Block.', icon: 'straight' },
-      { instruction: 'The Ground entrance is on your Left.', icon: 'destination' }
-    ]
-  },
-  {
-    id: 'canteen',
-    name: 'Canteen',
-    block: 'Campus Facilities',
-    floor: 'Ground',
-    category: 'amenity',
-    aliases: ['food', 'lunch', 'cafeteria'],
-    distance: 300,
-    estimatedTime: 5,
-    mapImage: 'https://placehold.co/800x600/a16207/fefce8?text=Canteen',
-    steps: [
-      { instruction: 'Exit Main Block and Turn Right.', icon: 'turn-right' },
-      { instruction: 'Cross Students Parking towards MBA Block.', icon: 'straight' },
-      { instruction: 'Walk behind MBA Block to find the Canteen.', icon: 'destination' }
-    ]
-  },
-  {
-    id: 'mess',
-    name: 'Student Mess',
-    block: 'Campus Facilities',
-    floor: 'Ground',
-    category: 'amenity',
-    aliases: ['hostel mess', 'dining'],
-    distance: 320,
-    estimatedTime: 5,
-    mapImage: 'https://placehold.co/800x600/a16207/fefce8?text=Mess',
-    steps: [
-      { instruction: 'Exit Main Block and Turn Right.', icon: 'turn-right' },
-      { instruction: 'Walk past Diploma Block.', icon: 'straight' },
-      { instruction: 'The Mess is the last building on your Right.', icon: 'destination' }
-    ]
-  },
+// =====================================================================
+// DYNAMIC LOCATION GENERATOR
+// =====================================================================
 
-  // =====================================================================
-  // MAIN BLOCK - ADMINISTRATION
-  // =====================================================================
-  {
-    id: 'principal-chamber',
-    name: "Principal's Chamber",
-    block: 'Main Block',
-    floor: 'Ground Floor',
-    category: 'administrative',
-    aliases: ['principal', 'director'],
-    distance: 40,
-    estimatedTime: 1,
-    steps: mainBlockSteps('Ground Floor', 'Right', "Principal's Office")
-  },
-  {
-    id: 'admin-office',
-    name: 'Administrative Office',
-    block: 'Main Block',
-    floor: 'Ground Floor',
-    category: 'administrative',
-    aliases: ['office', 'fees', 'accounts'],
-    distance: 30,
-    estimatedTime: 1,
-    steps: mainBlockSteps('Ground Floor', 'Left', "Admin Office")
-  },
-  {
-    id: 'exam-cell',
-    name: 'Examination Cell',
-    block: 'Main Block',
-    floor: '1st Floor',
-    category: 'administrative',
-    aliases: ['exam section', 'results'],
-    distance: 120,
-    estimatedTime: 3,
-    steps: mainBlockSteps('1st Floor', 'Left', "Exam Cell")
-  },
-  {
-    id: 'placement-cell',
-    name: 'Placement Cell',
-    block: 'Main Block',
-    floor: '2nd Floor',
-    category: 'administrative',
-    aliases: ['tpo', 'jobs', 'interview'],
-    distance: 150,
-    estimatedTime: 3,
-    steps: mainBlockSteps('2nd Floor', 'Right', "Placement Cell")
-  },
+export const getLocations = (lang: Language = 'en'): LocationData[] => {
+  const d = DICTIONARY[lang];
 
-  // =====================================================================
-  // MAIN BLOCK - ACADEMIC - B.TECH
-  // =====================================================================
-  
-  // --- B.Tech CSE ---
-  ...createDeptLocations('CSE', 'B.Tech', 'Computer Science & Engg', '3rd Floor'),
-  // --- B.Tech ECE ---
-  ...createDeptLocations('ECE', 'B.Tech', 'Electronics & Comm Engg', '2nd Floor'),
-  // --- B.Tech EEE ---
-  ...createDeptLocations('EEE', 'B.Tech', 'Electrical & Electronics', '1st Floor'),
-  // --- B.Tech MECH ---
-  ...createDeptLocations('MECH', 'B.Tech', 'Mechanical Engineering', 'Ground Floor'),
-  // --- B.Tech CIVIL ---
-  ...createDeptLocations('CIVIL', 'B.Tech', 'Civil Engineering', 'Ground Floor'),
+  return [
+    // --- EXTERNAL BLOCKS ---
+    {
+      id: 'mba-block',
+      name: d.mbaBlock,
+      block: d.mbaBlock,
+      floor: d.groundFloor,
+      category: 'academic',
+      program: 'MBA',
+      aliases: ['mba', 'management block', 'business school'],
+      distance: 150,
+      estimatedTime: 3,
+      mapImage: 'https://placehold.co/800x600/be123c/fff1f2?text=MBA+Block',
+      steps: [
+        { instruction: d.exitMain, icon: 'straight' },
+        { instruction: d.crossParking, icon: 'turn-right' },
+        { instruction: d.mbaAhead, icon: 'destination' }
+      ]
+    },
+    {
+      id: 'diploma-block',
+      name: d.diplomaBlock,
+      block: d.diplomaBlock,
+      floor: d.groundFloor,
+      category: 'academic',
+      program: 'Diploma',
+      aliases: ['polytechnic', 'diploma'],
+      distance: 160,
+      estimatedTime: 3,
+      mapImage: 'https://placehold.co/800x600/c2410c/fff7ed?text=Diploma+Block',
+      steps: [
+        { instruction: d.exitMain, icon: 'straight' },
+        { instruction: d.exitRight.replace('Exit Main Block and ', ''), icon: 'turn-right' }, // reuse part
+        { instruction: d.pastParking, icon: 'straight' },
+        { instruction: d.dipRight, icon: 'destination' }
+      ]
+    },
+    {
+      id: 'grounds',
+      name: lang === 'en' ? 'College Ground' : (lang === 'te' ? 'కాలేజ్ గ్రౌండ్' : 'कॉलेज ग्राउंड'),
+      block: d.campusFacilities,
+      floor: d.openArea,
+      category: 'amenity',
+      aliases: ['playground', 'cricket', 'sports'],
+      distance: 350,
+      estimatedTime: 6,
+      mapImage: 'https://placehold.co/800x600/3f6212/ecfccb?text=College+Ground',
+      steps: [
+        { instruction: d.exitRight, icon: 'turn-right' },
+        { instruction: d.pastDiploma, icon: 'straight' },
+        { instruction: d.groundLeft, icon: 'destination' }
+      ]
+    },
+    {
+      id: 'canteen',
+      name: lang === 'en' ? 'Canteen' : (lang === 'te' ? 'క్యాంటీన్' : 'कैंटीन'),
+      block: d.campusFacilities,
+      floor: d.groundFloor,
+      category: 'amenity',
+      aliases: ['food', 'lunch', 'cafeteria'],
+      distance: 300,
+      estimatedTime: 5,
+      mapImage: 'https://placehold.co/800x600/a16207/fefce8?text=Canteen',
+      steps: [
+        { instruction: d.exitRight, icon: 'turn-right' },
+        { instruction: d.crossParking, icon: 'straight' },
+        { instruction: d.behindMba, icon: 'destination' }
+      ]
+    },
+    {
+      id: 'mess',
+      name: lang === 'en' ? 'Student Mess' : (lang === 'te' ? 'మెస్' : 'मेस'),
+      block: d.campusFacilities,
+      floor: d.groundFloor,
+      category: 'amenity',
+      aliases: ['hostel mess', 'dining'],
+      distance: 320,
+      estimatedTime: 5,
+      mapImage: 'https://placehold.co/800x600/a16207/fefce8?text=Mess',
+      steps: [
+        { instruction: d.exitRight, icon: 'turn-right' },
+        { instruction: d.pastDiploma, icon: 'straight' },
+        { instruction: d.messRight, icon: 'destination' }
+      ]
+    },
 
-  // =====================================================================
-  // MAIN BLOCK - ACADEMIC - M.TECH
-  // =====================================================================
-  
-  // --- M.Tech Depts ---
-  ...createDeptLocations('CSE', 'M.Tech', 'Computer Science & Engg', '3rd Floor'),
-  ...createDeptLocations('ECE', 'M.Tech', 'Digital Systems', '2nd Floor'),
-  ...createDeptLocations('EPS', 'M.Tech', 'Power Systems', '1st Floor'),
-  ...createDeptLocations('VLSI', 'M.Tech', 'VLSI & Embedded Systems', '2nd Floor'),
-  ...createDeptLocations('SE', 'M.Tech', 'Structural Engineering', 'Ground Floor'),
-  ...createDeptLocations('TE', 'M.Tech', 'Thermal Engineering', 'Ground Floor'),
-  ...createDeptLocations('CAD', 'M.Tech', 'CAD/CAM', 'Ground Floor'),
-  ...createDeptLocations('AIML', 'M.Tech', 'AI & Machine Learning', '3rd Floor'),
+    // --- MAIN BLOCK ADMIN ---
+    {
+      id: 'principal-chamber',
+      name: d.principalOffice,
+      block: d.mainBlock,
+      floor: d.groundFloor,
+      category: 'administrative',
+      aliases: ['principal', 'director'],
+      distance: 40,
+      estimatedTime: 1,
+      steps: mainBlockSteps('groundFloor', 'right', d.principalOffice, lang)
+    },
+    {
+      id: 'admin-office',
+      name: d.adminOffice,
+      block: d.mainBlock,
+      floor: d.groundFloor,
+      category: 'administrative',
+      aliases: ['office', 'fees', 'accounts'],
+      distance: 30,
+      estimatedTime: 1,
+      steps: mainBlockSteps('groundFloor', 'left', d.adminOffice, lang)
+    },
+    {
+      id: 'exam-cell',
+      name: d.examCell,
+      block: d.mainBlock,
+      floor: d.firstFloor,
+      category: 'administrative',
+      aliases: ['exam section', 'results'],
+      distance: 120,
+      estimatedTime: 3,
+      steps: mainBlockSteps('firstFloor', 'left', d.examCell, lang)
+    },
+    {
+      id: 'placement-cell',
+      name: d.placementCell,
+      block: d.mainBlock,
+      floor: d.secondFloor,
+      category: 'administrative',
+      aliases: ['tpo', 'jobs', 'interview'],
+      distance: 150,
+      estimatedTime: 3,
+      steps: mainBlockSteps('secondFloor', 'right', d.placementCell, lang)
+    },
 
-  // =====================================================================
-  // MAIN BLOCK - AMENITIES (Floor Wise)
-  // =====================================================================
-  ...createMainBlockAmenities('Ground Floor'),
-  ...createMainBlockAmenities('1st Floor'),
-  ...createMainBlockAmenities('2nd Floor'),
-  ...createMainBlockAmenities('3rd Floor'),
+    // --- ACADEMIC B.TECH ---
+    ...createDeptLocations('CSE', 'B.Tech', 'Computer Science & Engg', 'thirdFloor', lang),
+    ...createDeptLocations('ECE', 'B.Tech', 'Electronics & Comm Engg', 'secondFloor', lang),
+    ...createDeptLocations('EEE', 'B.Tech', 'Electrical & Electronics', 'firstFloor', lang),
+    ...createDeptLocations('MECH', 'B.Tech', 'Mechanical Engineering', 'groundFloor', lang),
+    ...createDeptLocations('CIVIL', 'B.Tech', 'Civil Engineering', 'groundFloor', lang),
 
-];
+    // --- ACADEMIC M.TECH ---
+    ...createDeptLocations('CSE', 'M.Tech', 'Computer Science & Engg', 'thirdFloor', lang),
+    ...createDeptLocations('ECE', 'M.Tech', 'Digital Systems', 'secondFloor', lang),
+    ...createDeptLocations('EPS', 'M.Tech', 'Power Systems', 'firstFloor', lang),
+    ...createDeptLocations('VLSI', 'M.Tech', 'VLSI & Embedded Systems', 'secondFloor', lang),
+    ...createDeptLocations('SE', 'M.Tech', 'Structural Engineering', 'groundFloor', lang),
+    ...createDeptLocations('TE', 'M.Tech', 'Thermal Engineering', 'groundFloor', lang),
+    ...createDeptLocations('CAD', 'M.Tech', 'CAD/CAM', 'groundFloor', lang),
+    ...createDeptLocations('AIML', 'M.Tech', 'AI & Machine Learning', 'thirdFloor', lang),
+
+    // --- AMENITIES ---
+    ...createMainBlockAmenities('groundFloor', lang),
+    ...createMainBlockAmenities('firstFloor', lang),
+    ...createMainBlockAmenities('secondFloor', lang),
+    ...createMainBlockAmenities('thirdFloor', lang),
+  ];
+};
+
+// Backwards compatibility for existing imports (Default to English)
+export const LOCATIONS: LocationData[] = getLocations('en');
 
 export const FEES: FeeStructure[] = [
 

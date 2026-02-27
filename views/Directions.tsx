@@ -1,14 +1,15 @@
 
-import React, { useState, useEffect, useRef } from 'react';
-import { Search, MapPin, Navigation, Clock, Footprints, Mic, ChevronRight, RotateCcw, ArrowLeft, ArrowRight, Building, Briefcase, GraduationCap, Coffee, Home, X, Users, BookOpen, Droplets } from 'lucide-react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { Search, MapPin, Navigation, Clock, Footprints, Mic, ChevronRight, RotateCcw, ArrowLeft, ArrowRight, Building, Briefcase, GraduationCap, Coffee, Home, X, Users, BookOpen, Droplets, Volume2 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Fuse from 'fuse.js';
 import { searchLocations } from '../services/searchService';
 import { LocationData, LocationCategory } from '../types';
-import { LOCATIONS } from '../data/mockData';
+import { LOCATIONS, getLocations } from '../data/mockData';
 import toast from 'react-hot-toast';
 import VoiceSearchModal from '../components/VoiceSearchModal';
+import { useLanguage } from '../contexts/LanguageContext';
 
 // Types for navigation state
 interface NavState {
@@ -21,7 +22,11 @@ interface NavState {
 const Directions: React.FC = () => {
   const routerLoc = useLocation();
   const navigate = useNavigate();
+  const { t, language, speak, stopSpeaking } = useLanguage();
   
+  // Memoize the localized locations based on current language
+  const currentLocations = useMemo(() => getLocations(language), [language]);
+
   // Search State
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState<LocationData[]>([]);
@@ -35,20 +40,60 @@ const Directions: React.FC = () => {
   // Final Selection
   const [selectedRoute, setSelectedRoute] = useState<LocationData | null>(null);
 
+  // --- Voice Announcements for State Changes ---
+  useEffect(() => {
+     if (selectedRoute) {
+         const text = t.speak_nav_start
+            .replace('{name}', selectedRoute.name)
+            .replace('{distance}', selectedRoute.distance.toString())
+            .replace('{instruction}', selectedRoute.steps[0].instruction);
+         speak(text);
+     } else if (navState.department) {
+         speak(t.speak_select_dept.replace('{dept}', navState.department));
+     } else if (navState.academicProgram) {
+         speak(t.speak_select_program.replace('{program}', navState.academicProgram));
+     } else if (navState.mainBlockSection) {
+         speak(t.speak_select_section.replace('{section}', navState.mainBlockSection));
+     } else if (navState.block) {
+         speak(t.speak_select_block.replace('{block}', navState.block));
+     } else {
+         speak(t.dir_select_block);
+     }
+  }, [navState, selectedRoute, language]);
+
+  const readDirections = () => {
+      if (!selectedRoute) return;
+      const stepsText = selectedRoute.steps.map((s, i) => `${i+1}. ${s.instruction}`).join('. ');
+      const text = t.speak_directions_read
+        .replace('{name}', selectedRoute.name)
+        .replace('{steps}', stepsText);
+      speak(text);
+  };
+
   // Initial Data processing
   useEffect(() => {
     if (routerLoc.state && (routerLoc.state as any).initialQuery) {
       const initQ = (routerLoc.state as any).initialQuery;
-      const matches = searchLocations(initQ);
+      // Search in the current localized list
+      const matches = searchLocations(initQ, currentLocations);
       if (matches.length > 0) {
         setSelectedRoute(matches[0]);
       } else {
-        setQuery(initQ);
-        handleSearch(initQ);
-        toast.error("Location not found.");
+        // Fallback: try searching in default English if failed
+        const fallbackMatches = searchLocations(initQ, getLocations('en'));
+         if (fallbackMatches.length > 0) {
+             // If found in English, try to find corresponding ID in current language to show translated result
+             const foundId = fallbackMatches[0].id;
+             const localizedMatch = currentLocations.find(l => l.id === foundId);
+             setSelectedRoute(localizedMatch || fallbackMatches[0]);
+         } else {
+            setQuery(initQ);
+            handleSearch(initQ);
+            toast.error("Location not found.");
+         }
       }
     }
-  }, [routerLoc.state]);
+  }, [routerLoc.state, currentLocations]);
 
   // Click outside handler to close dropdown
   useEffect(() => {
@@ -71,16 +116,17 @@ const Directions: React.FC = () => {
       setSearchResults([]);
       return;
     }
-    const matches = searchLocations(text);
+    const matches = searchLocations(text, currentLocations);
     setSearchResults(matches);
   };
 
   const handleVoiceResult = (text: string) => {
       setQuery(text);
       handleSearch(text);
-      const matches = searchLocations(text);
+      const matches = searchLocations(text, currentLocations);
       if (matches.length > 0) {
-          if (matches[0].name.toLowerCase() === text.toLowerCase()) {
+          // Check for exact name match logic roughly
+          if (matches[0].name.toLowerCase().includes(text.toLowerCase()) || text.toLowerCase().includes(matches[0].name.toLowerCase())) {
               handleSelectLocation(matches[0]);
               toast.success(`Navigating to ${matches[0].name}`);
           } else {
@@ -155,16 +201,19 @@ const Directions: React.FC = () => {
   const getMTechDepartments = () => ['CSE', 'ECE', 'VLSI', 'EPS', 'SE', 'TE', 'CAD', 'AIML'];
 
   const getLocationsForDept = (dept: string, program: string) => {
-      return LOCATIONS.filter(l => 
+      return currentLocations.filter(l => 
         l.department === dept && 
         l.program === program && 
-        l.block === 'Main Block'
+        l.block.includes(language === 'en' ? 'Main Block' : (language === 'te' ? 'మెయిన్ బ్లాక్' : 'मेन ब्लॉक')) // Simplified check or check ID
       );
   };
 
-  const getAdminLocations = () => LOCATIONS.filter(l => l.category === 'administrative' && l.block === 'Main Block');
+  // Helper to find location by ID in current language list
+  const findLoc = (id: string) => currentLocations.find(l => l.id === id);
 
-  const getMainBlockAmenities = () => LOCATIONS.filter(l => l.block === 'Main Block' && l.category === 'amenity');
+  const getAdminLocations = () => currentLocations.filter(l => l.category === 'administrative');
+
+  const getMainBlockAmenities = () => currentLocations.filter(l => l.category === 'amenity' && l.block.includes(language === 'en' ? 'Main Block' : (language === 'te' ? 'మెయిన్ బ్లాక్' : 'मेन ब्लॉक')));
 
   // --- Render Helpers ---
 
@@ -174,27 +223,27 @@ const Directions: React.FC = () => {
       {/* Main Block */}
       <button onClick={() => setNavState({ ...navState, block: 'Main Block' })} className="bg-white p-8 rounded-2xl shadow-lg border border-slate-200 hover:border-blue-500 hover:shadow-blue-500/20 transition-all text-left group">
           <div className="bg-blue-100 w-14 h-14 rounded-full flex items-center justify-center text-blue-600 mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors"><Building size={28} /></div>
-          <h3 className="text-xl font-bold text-slate-900">Main Block</h3>
+          <h3 className="text-xl font-bold text-slate-900">{t.cat_main_block}</h3>
           <p className="text-slate-500 text-sm mt-1">Admin, B.Tech & M.Tech</p>
       </button>
 
       {/* Direct Blocks */}
-      <button onClick={() => handleSelectLocation(LOCATIONS.find(l => l.id === 'mba-block')!)} className="bg-white p-8 rounded-2xl shadow-lg border border-slate-200 hover:border-blue-500 hover:shadow-blue-500/20 transition-all text-left group">
+      <button onClick={() => handleSelectLocation(findLoc('mba-block')!)} className="bg-white p-8 rounded-2xl shadow-lg border border-slate-200 hover:border-blue-500 hover:shadow-blue-500/20 transition-all text-left group">
           <div className="bg-purple-100 w-14 h-14 rounded-full flex items-center justify-center text-purple-600 mb-4 group-hover:bg-purple-600 group-hover:text-white transition-colors"><Briefcase size={28} /></div>
-          <h3 className="text-xl font-bold text-slate-900">MBA Block</h3>
+          <h3 className="text-xl font-bold text-slate-900">{t.cat_mba_block}</h3>
           <p className="text-slate-500 text-sm mt-1">Direct Navigation</p>
       </button>
 
-      <button onClick={() => handleSelectLocation(LOCATIONS.find(l => l.id === 'diploma-block')!)} className="bg-white p-8 rounded-2xl shadow-lg border border-slate-200 hover:border-blue-500 hover:shadow-blue-500/20 transition-all text-left group">
+      <button onClick={() => handleSelectLocation(findLoc('diploma-block')!)} className="bg-white p-8 rounded-2xl shadow-lg border border-slate-200 hover:border-blue-500 hover:shadow-blue-500/20 transition-all text-left group">
           <div className="bg-orange-100 w-14 h-14 rounded-full flex items-center justify-center text-orange-600 mb-4 group-hover:bg-orange-600 group-hover:text-white transition-colors"><GraduationCap size={28} /></div>
-          <h3 className="text-xl font-bold text-slate-900">Diploma Block</h3>
+          <h3 className="text-xl font-bold text-slate-900">{t.cat_diploma_block}</h3>
           <p className="text-slate-500 text-sm mt-1">Direct Navigation</p>
       </button>
 
       {/* Campus Facilities Group (formerly Amenities + Grounds) */}
       <button onClick={() => setNavState({...navState, block: 'Campus Facilities'})} className="bg-white p-8 rounded-2xl shadow-lg border border-slate-200 hover:border-blue-500 hover:shadow-blue-500/20 transition-all text-left group">
           <div className="bg-yellow-100 w-14 h-14 rounded-full flex items-center justify-center text-yellow-600 mb-4 group-hover:bg-yellow-600 group-hover:text-white transition-colors"><Coffee size={28} /></div>
-          <h3 className="text-xl font-bold text-slate-900">Campus Facilities</h3>
+          <h3 className="text-xl font-bold text-slate-900">{t.cat_facilities}</h3>
           <p className="text-slate-500 text-sm mt-1">Grounds, Canteen, Mess</p>
       </button>
     </div>
@@ -203,17 +252,17 @@ const Directions: React.FC = () => {
   // 2. Facilities Selection (If Campus Facilities Block selected)
   const renderFacilitiesSelection = () => (
      <div className="grid grid-cols-2 md:grid-cols-3 gap-6 animate-in slide-in-from-right-4 duration-500">
-        <button onClick={() => handleSelectLocation(LOCATIONS.find(l => l.id === 'grounds')!)} className="bg-white p-6 rounded-2xl shadow-lg border hover:border-blue-500 group text-left">
+        <button onClick={() => handleSelectLocation(findLoc('grounds')!)} className="bg-white p-6 rounded-2xl shadow-lg border hover:border-blue-500 group text-left">
             <div className="bg-green-100 w-12 h-12 rounded-xl flex items-center justify-center text-green-600 mb-3 group-hover:bg-green-600 group-hover:text-white"><Footprints size={24}/></div>
-            <h3 className="text-lg font-bold">College Ground</h3>
+            <h3 className="text-lg font-bold">{t.cat_grounds}</h3>
         </button>
-        <button onClick={() => handleSelectLocation(LOCATIONS.find(l => l.id === 'canteen')!)} className="bg-white p-6 rounded-2xl shadow-lg border hover:border-blue-500 group text-left">
+        <button onClick={() => handleSelectLocation(findLoc('canteen')!)} className="bg-white p-6 rounded-2xl shadow-lg border hover:border-blue-500 group text-left">
             <div className="bg-yellow-100 w-12 h-12 rounded-xl flex items-center justify-center text-yellow-600 mb-3 group-hover:bg-yellow-600 group-hover:text-white"><Coffee size={24}/></div>
-            <h3 className="text-lg font-bold">Canteen</h3>
+            <h3 className="text-lg font-bold">{t.cat_canteen}</h3>
         </button>
-        <button onClick={() => handleSelectLocation(LOCATIONS.find(l => l.id === 'mess')!)} className="bg-white p-6 rounded-2xl shadow-lg border hover:border-blue-500 group text-left">
+        <button onClick={() => handleSelectLocation(findLoc('mess')!)} className="bg-white p-6 rounded-2xl shadow-lg border hover:border-blue-500 group text-left">
             <div className="bg-orange-100 w-12 h-12 rounded-xl flex items-center justify-center text-orange-600 mb-3 group-hover:bg-orange-600 group-hover:text-white"><Coffee size={24}/></div>
-            <h3 className="text-lg font-bold">Mess</h3>
+            <h3 className="text-lg font-bold">{t.cat_mess}</h3>
         </button>
      </div>
   );
@@ -227,7 +276,7 @@ const Directions: React.FC = () => {
                 <Briefcase size={32} />
              </div>
              <div>
-                <h3 className="text-xl font-bold text-slate-900">Administration</h3>
+                <h3 className="text-xl font-bold text-slate-900">{t.sec_admin}</h3>
                 <p className="text-slate-500 text-sm mt-1">Principal, Office, Exam Cell</p>
              </div>
         </button>
@@ -238,7 +287,7 @@ const Directions: React.FC = () => {
                 <GraduationCap size={32} />
              </div>
              <div>
-                <h3 className="text-xl font-bold text-slate-900">Academic</h3>
+                <h3 className="text-xl font-bold text-slate-900">{t.sec_academic}</h3>
                 <p className="text-slate-500 text-sm mt-1">Departments, Classes, Labs</p>
              </div>
         </button>
@@ -249,7 +298,7 @@ const Directions: React.FC = () => {
                 <Droplets size={32} />
              </div>
              <div>
-                <h3 className="text-xl font-bold text-slate-900">Common Utilities</h3>
+                <h3 className="text-xl font-bold text-slate-900">{t.sec_utilities}</h3>
                 <p className="text-slate-500 text-sm mt-1">Washrooms, Water, Rest Rooms</p>
              </div>
         </button>
@@ -284,7 +333,7 @@ const Directions: React.FC = () => {
             {depts.map(d => (
                 <button key={d} onClick={() => setNavState({...navState, department: d})} className="bg-white p-6 rounded-xl shadow border border-slate-200 hover:border-blue-500 hover:shadow-lg transition-all text-left">
                     <div className="text-2xl font-black text-slate-800 mb-1">{d}</div>
-                    <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">Department</div>
+                    <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">{language === 'en' ? 'Department' : (language === 'te' ? 'విభాగం' : 'विभाग')}</div>
                 </button>
             ))}
         </div>
@@ -316,12 +365,16 @@ const Directions: React.FC = () => {
   // Breadcrumbs
   const renderBreadcrumbs = () => (
     <div className="flex items-center gap-2 mb-6 text-sm font-semibold text-slate-600 bg-white/80 backdrop-blur-sm w-fit px-4 py-2 rounded-full shadow-sm flex-wrap">
-      <button onClick={resetNavigation} className="hover:text-blue-600 flex items-center gap-1"><Home size={14}/> Campus</button>
+      <button onClick={resetNavigation} className="hover:text-blue-600 flex items-center gap-1"><Home size={14}/> {t.dir_campus}</button>
       
       {navState.block && (
         <>
           <ChevronRight size={14} />
-          <button onClick={() => setNavState({block: navState.block})} className="hover:text-blue-600">{navState.block}</button>
+          <button onClick={() => setNavState({block: navState.block})} className="hover:text-blue-600">
+            {navState.block === 'Main Block' ? t.cat_main_block : 
+             navState.block === 'Campus Facilities' ? t.cat_facilities : 
+             navState.block}
+          </button>
         </>
       )}
       
@@ -329,7 +382,7 @@ const Directions: React.FC = () => {
         <>
           <ChevronRight size={14} />
           <button onClick={() => setNavState({...navState, mainBlockSection: navState.mainBlockSection, academicProgram: undefined})} className="hover:text-blue-600 capitalize">
-            {navState.mainBlockSection === 'administrative' ? 'Admin' : (navState.mainBlockSection === 'academic' ? 'Academic' : 'Utilities')}
+            {navState.mainBlockSection === 'administrative' ? t.sec_admin : (navState.mainBlockSection === 'academic' ? t.sec_academic : t.sec_utilities)}
           </button>
         </>
       )}
@@ -377,7 +430,7 @@ const Directions: React.FC = () => {
                 className="flex items-center gap-2 bg-white/90 backdrop-blur text-slate-900 px-5 py-2.5 rounded-xl shadow-lg border-white/20 hover:bg-white font-bold transition-all group"
             >
                 <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-                Back
+                {t.dir_back}
             </button>
         </div>
 
@@ -391,7 +444,7 @@ const Directions: React.FC = () => {
                             value={query}
                             onFocus={() => setShowDropdown(true)}
                             onChange={(e) => handleSearch(e.target.value)}
-                            placeholder="Search (e.g., Principal, CSE HOD, Canteen)"
+                            placeholder={t.dir_search_placeholder}
                             className="w-full pl-16 pr-4 py-5 bg-white text-slate-900 rounded-2xl focus:ring-4 focus:ring-blue-500/50 focus:outline-none text-xl font-medium shadow-inner transition-colors"
                         />
                     </div>
@@ -454,6 +507,13 @@ const Directions: React.FC = () => {
                                         <MapPin size={48} className="opacity-20"/>
                                     </div>
                                 )}
+                                {/* Floating Read Button */}
+                                <button 
+                                    onClick={readDirections}
+                                    className="absolute bottom-4 right-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 font-bold transition-transform hover:scale-105 z-20"
+                                >
+                                    <Volume2 size={18} /> Read Directions
+                                </button>
                             </div>
                             
                             <div className="h-auto p-4 border-t border-slate-200 bg-white grid grid-cols-2 gap-4 flex-none z-10">
@@ -521,42 +581,42 @@ const Directions: React.FC = () => {
 
                     {!navState.block && (
                         <div>
-                             <h2 className="text-white text-3xl font-bold mb-6 text-center shadow-black drop-shadow-md">Select Campus Block</h2>
+                             <h2 className="text-white text-3xl font-bold mb-6 text-center shadow-black drop-shadow-md">{t.dir_select_block}</h2>
                              {renderBlockSelection()}
                         </div>
                     )}
 
                     {navState.block === 'Campus Facilities' && (
                         <div>
-                            <h2 className="text-white text-3xl font-bold mb-6 text-center drop-shadow-md">Select Facility</h2>
+                            <h2 className="text-white text-3xl font-bold mb-6 text-center drop-shadow-md">{t.dir_select_amenity}</h2>
                             {renderFacilitiesSelection()}
                         </div>
                     )}
 
                     {navState.block === 'Main Block' && !navState.mainBlockSection && (
                         <div>
-                             <h2 className="text-white text-3xl font-bold mb-6 text-center drop-shadow-md">What are you looking for?</h2>
+                             <h2 className="text-white text-3xl font-bold mb-6 text-center drop-shadow-md">{t.dir_what_looking}</h2>
                              {renderMainBlockSectionSelection()}
                         </div>
                     )}
 
                     {navState.mainBlockSection === 'administrative' && (
                         <div>
-                            <h2 className="text-white text-3xl font-bold mb-6 text-center drop-shadow-md">Administrative Offices</h2>
+                            <h2 className="text-white text-3xl font-bold mb-6 text-center drop-shadow-md">{t.dir_admin_offices}</h2>
                             {renderLocationList(getAdminLocations())}
                         </div>
                     )}
 
                     {navState.mainBlockSection === 'academic' && !navState.academicProgram && (
                         <div>
-                            <h2 className="text-white text-3xl font-bold mb-6 text-center drop-shadow-md">Select Program</h2>
+                            <h2 className="text-white text-3xl font-bold mb-6 text-center drop-shadow-md">{t.dir_select_program}</h2>
                             {renderProgramSelection()}
                         </div>
                     )}
 
                     {navState.academicProgram && !navState.department && (
                         <div>
-                            <h2 className="text-white text-3xl font-bold mb-6 text-center drop-shadow-md">Select {navState.academicProgram} Department</h2>
+                            <h2 className="text-white text-3xl font-bold mb-6 text-center drop-shadow-md">{t.dir_select_dept}</h2>
                             {renderDepartmentList()}
                         </div>
                     )}
@@ -570,7 +630,7 @@ const Directions: React.FC = () => {
 
                     {navState.mainBlockSection === 'amenities' && (
                         <div>
-                            <h2 className="text-white text-3xl font-bold mb-6 text-center drop-shadow-md">Common Utilities</h2>
+                            <h2 className="text-white text-3xl font-bold mb-6 text-center drop-shadow-md">{t.dir_common_utils}</h2>
                             {renderLocationList(getMainBlockAmenities())}
                         </div>
                     )}

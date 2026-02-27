@@ -1,3 +1,4 @@
+
 import Fuse from 'fuse.js';
 import { LOCATIONS } from '../data/mockData';
 import { LocationData } from '../types';
@@ -8,11 +9,16 @@ const options = {
   threshold: 0.4, // 0.0 is perfect match, 1.0 is match anything
 };
 
-const fuse = new Fuse(LOCATIONS, options);
+// Default Fuse instance for English/Fallback
+const defaultFuse = new Fuse(LOCATIONS, options);
 
-export const searchLocations = (query: string): LocationData[] => {
+export const searchLocations = (query: string, customLocations?: LocationData[]): LocationData[] => {
   if (!query) return [];
-  const results = fuse.search(query);
+  
+  // If custom locations are provided (e.g. for a specific language), use them
+  const fuseInstance = customLocations ? new Fuse(customLocations, options) : defaultFuse;
+  
+  const results = fuseInstance.search(query);
   return results.map(result => result.item);
 };
 

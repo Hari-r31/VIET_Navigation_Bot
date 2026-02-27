@@ -7,9 +7,10 @@ interface VoiceSearchModalProps {
   isOpen: boolean;
   onClose: () => void;
   onResult: (text: string) => void;
+  langCode?: string;
 }
 
-const VoiceSearchModal: React.FC<VoiceSearchModalProps> = ({ isOpen, onClose, onResult }) => {
+const VoiceSearchModal: React.FC<VoiceSearchModalProps> = ({ isOpen, onClose, onResult, langCode = 'en-US' }) => {
   const [interimText, setInterimText] = useState('');
   const [status, setStatus] = useState<'listening' | 'processing' | 'error'>('listening');
   const [errorMessage, setErrorMessage] = useState('');
@@ -39,7 +40,8 @@ const VoiceSearchModal: React.FC<VoiceSearchModalProps> = ({ isOpen, onClose, on
             },
             (interim) => {
                 setInterimText(interim);
-            }
+            },
+            langCode
         );
         recognitionRef.current = instance;
       }, 100);

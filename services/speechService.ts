@@ -18,11 +18,77 @@ interface Window {
   webkitSpeechRecognition: any;
 }
 
+// --- Text to Speech (TTS) ---
+
+let synthesisVoice: SpeechSynthesisVoice | null = null;
+
+const getVoiceForLang = (langCode: string): SpeechSynthesisVoice | null => {
+  const voices = window.speechSynthesis.getVoices();
+  // Preference: Female voice, then matching language
+  // Lang codes: 'en-IN', 'te-IN', 'hi-IN'
+  
+  // 1. Try to find exact match with 'female' or 'Google' (often better quality)
+  let voice = voices.find(v => v.lang === langCode && (v.name.includes('Female') || v.name.includes('Google')));
+  
+  // 2. Try any voice for that language
+  if (!voice) {
+    voice = voices.find(v => v.lang === langCode);
+  }
+
+  // 3. Fallback to similar language (e.g. en-US for en-IN)
+  if (!voice && langCode.startsWith('en')) {
+     voice = voices.find(v => v.lang.startsWith('en'));
+  }
+
+  return voice || null;
+};
+
+export const stopSpeaking = () => {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
+};
+
+export const speak = (text: string, lang: 'en' | 'te' | 'hi' = 'en') => {
+  if (!('speechSynthesis' in window)) {
+    console.warn('Text-to-speech not supported');
+    return;
+  }
+
+  // Cancel any current speech
+  window.speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  
+  // Map simple lang codes to BCP 47
+  let targetLang = 'en-IN';
+  if (lang === 'te') targetLang = 'te-IN';
+  if (lang === 'hi') targetLang = 'hi-IN';
+  
+  utterance.lang = targetLang;
+  
+  // Load voices if not already loaded (chrome requires this sometimes)
+  if (window.speechSynthesis.getVoices().length === 0) {
+      window.speechSynthesis.onvoiceschanged = () => {
+          const voice = getVoiceForLang(targetLang);
+          if (voice) utterance.voice = voice;
+          window.speechSynthesis.speak(utterance);
+      };
+  } else {
+      const voice = getVoiceForLang(targetLang);
+      if (voice) utterance.voice = voice;
+      window.speechSynthesis.speak(utterance);
+  }
+};
+
+// --- Speech Recognition (STT) ---
+
 export const startListening = (
   onResult: (text: string) => void,
   onEnd: () => void,
   onError: (error: string) => void,
-  onInterim?: (text: string) => void
+  onInterim?: (text: string) => void,
+  langCode: string = 'en-US'
 ) => {
   const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
@@ -34,7 +100,7 @@ export const startListening = (
   const recognition: SpeechRecognition = new SpeechRecognition();
   recognition.continuous = false;
   recognition.interimResults = true; // Enable interim results for real-time feedback
-  recognition.lang = 'en-US';
+  recognition.lang = langCode;
 
   recognition.onstart = () => {
     // console.log('Listening started...');

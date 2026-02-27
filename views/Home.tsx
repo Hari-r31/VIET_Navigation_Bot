@@ -1,21 +1,70 @@
-import React from 'react';
-import { Map, GraduationCap, Info, Users, Sparkles, Code, School, ChevronRight } from 'lucide-react';
+
+import React, { useEffect } from 'react';
+import { Map, GraduationCap, Info, Users, Sparkles, Code, School, ChevronRight, Languages } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../contexts/LanguageContext';
+import { translations } from '../data/translations';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
+  const { t, language, setLanguage, speak } = useLanguage();
+
+  useEffect(() => {
+    // Announce welcome message on mount
+    speak(t.assist_welcome);
+  }, []); // Run once on mount
+
+  const handleLanguageChange = (lang: 'en' | 'te' | 'hi') => {
+    setLanguage(lang);
+    // Speak in the NEW language
+    setTimeout(() => {
+        speak(translations[lang].speak_lang_changed);
+    }, 100);
+  };
+
+  const handleNavigation = (path: string, announcement: string) => {
+      speak(announcement);
+      navigate(path);
+  };
 
   return (
     <div className="flex flex-col h-full gap-4 md:gap-6 animate-in fade-in duration-500">
       
-      {/* 1. Hero / Welcome Message */}
-      <div className="flex-shrink-0 text-center py-2 md:py-4 lg:py-6">
-        <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight mb-2 md:mb-4">
-          Interactive <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">Campus Guide</span>
+      {/* 1. Language Toggle & Hero */}
+      <div className="flex-shrink-0 text-center py-2 md:py-4 relative">
+        
+        {/* Prominent Language Switcher */}
+        <div className="absolute top-0 right-0 md:right-10 flex gap-2">
+           <button 
+             onClick={() => handleLanguageChange('en')}
+             className={`flex flex-col items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-xl border-2 transition-all ${language === 'en' ? 'bg-blue-600 border-blue-600 text-white shadow-lg scale-105' : 'bg-white border-slate-200 text-slate-500 hover:border-blue-300'}`}
+           >
+             <span className="text-sm md:text-lg font-bold">Eng</span>
+           </button>
+           <button 
+             onClick={() => handleLanguageChange('te')}
+             className={`flex flex-col items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-xl border-2 transition-all ${language === 'te' ? 'bg-blue-600 border-blue-600 text-white shadow-lg scale-105' : 'bg-white border-slate-200 text-slate-500 hover:border-blue-300'}`}
+           >
+             <span className="text-sm md:text-lg font-bold">తెలు</span>
+           </button>
+           <button 
+             onClick={() => handleLanguageChange('hi')}
+             className={`flex flex-col items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-xl border-2 transition-all ${language === 'hi' ? 'bg-blue-600 border-blue-600 text-white shadow-lg scale-105' : 'bg-white border-slate-200 text-slate-500 hover:border-blue-300'}`}
+           >
+             <span className="text-sm md:text-lg font-bold">हिन्दी</span>
+           </button>
+        </div>
+
+        <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight mb-2 md:mb-4 pt-4 md:pt-0">
+          {language === 'en' ? (
+              <>Interactive <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">Campus Guide</span></>
+          ) : (
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">{t.home_title}</span>
+          )}
         </h1>
         <p className="text-base md:text-xl text-slate-500 font-medium max-w-2xl mx-auto flex items-center justify-center gap-2">
            <Sparkles size={20} className="text-yellow-500 fill-yellow-500" />
-           Touch or speak to navigate
+           {t.home_subtitle}
         </p>
       </div>
 
@@ -24,7 +73,7 @@ const Home: React.FC = () => {
         
         {/* Directions Card - Primary Action */}
         <button 
-          onClick={() => navigate('/directions')}
+          onClick={() => handleNavigation('/directions', t.card_directions_title)}
           className="relative overflow-hidden rounded-3xl bg-blue-600 text-white p-6 md:p-8 lg:p-10 text-left group shadow-xl hover:shadow-2xl hover:bg-blue-700 transition-all flex flex-col justify-between h-full w-full"
         >
           {/* Decor */}
@@ -37,20 +86,20 @@ const Home: React.FC = () => {
             <div className="bg-white/20 w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-2xl flex items-center justify-center backdrop-blur-md border border-white/10 shadow-inner mb-4 md:mb-6">
                <Map className="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10 text-white" />
             </div>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-2 md:mb-4 tracking-tight">Directions</h2>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-2 md:mb-4 tracking-tight">{t.card_directions_title}</h2>
             <p className="text-blue-100 text-sm md:text-lg lg:text-xl font-medium max-w-sm leading-relaxed">
-              Find classrooms, labs, HOD cabins, and amenities in the Main Campus.
+              {t.card_directions_desc}
             </p>
           </div>
 
           <div className="relative z-10 flex items-center gap-2 md:gap-3 font-bold uppercase tracking-wider text-xs md:text-sm lg:text-base mt-4 md:mt-8 bg-black/20 w-fit px-4 py-2 md:px-6 md:py-3 rounded-full hover:bg-black/30 transition-colors">
-             Start Navigation <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
+             {t.btn_start_nav} <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
           </div>
         </button>
 
         {/* Fees Card - Secondary Action */}
         <button 
-          onClick={() => navigate('/fees')}
+          onClick={() => handleNavigation('/fees', t.card_fees_title)}
           className="relative overflow-hidden rounded-3xl bg-white border border-slate-200 text-slate-900 p-6 md:p-8 lg:p-10 text-left group shadow-xl hover:shadow-2xl hover:border-emerald-400 transition-all flex flex-col justify-between h-full w-full"
         >
           {/* Decor */}
@@ -63,14 +112,14 @@ const Home: React.FC = () => {
             <div className="bg-emerald-100 w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-2xl flex items-center justify-center text-emerald-700 shadow-sm mb-4 md:mb-6">
                <GraduationCap className="w-6 h-6 md:w-8 md:h-8 lg:w-10 lg:h-10" />
             </div>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-2 md:mb-4 tracking-tight">Fee Info</h2>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-2 md:mb-4 tracking-tight">{t.card_fees_title}</h2>
             <p className="text-slate-500 text-sm md:text-lg lg:text-xl font-medium max-w-sm leading-relaxed">
-              Check tuition and development fees for B.Tech, MBA, and Diploma.
+              {t.card_fees_desc}
             </p>
           </div>
 
           <div className="relative z-10 flex items-center gap-2 md:gap-3 font-bold uppercase tracking-wider text-xs md:text-sm lg:text-base mt-4 md:mt-8 text-emerald-700 bg-emerald-50 w-fit px-4 py-2 md:px-6 md:py-3 rounded-full group-hover:bg-emerald-100 transition-colors">
-             Check Structure <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
+             {t.btn_check_structure} <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
           </div>
         </button>
       </div>
@@ -81,7 +130,7 @@ const Home: React.FC = () => {
         {/* College Profile */}
         <div className="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-sm flex flex-col gap-2 md:gap-3 group hover:border-indigo-300 transition-colors">
           <div className="flex items-center gap-2 text-indigo-600 font-bold uppercase text-[10px] md:text-xs tracking-wider mb-1">
-             <School size={16} /> Institute Profile
+             <School size={16} /> {t.info_profile}
           </div>
           <h3 className="text-lg md:text-xl font-bold text-slate-900 leading-tight">Visakha Institute of Engineering & Technology</h3>
           <p className="text-slate-500 text-xs md:text-sm leading-relaxed line-clamp-3">
@@ -93,7 +142,7 @@ const Home: React.FC = () => {
         {/* About Project */}
         <div className="bg-white rounded-2xl p-4 md:p-6 border border-slate-200 shadow-sm flex flex-col gap-2 md:gap-3 group hover:border-orange-300 transition-colors">
            <div className="flex items-center gap-2 text-orange-600 font-bold uppercase text-[10px] md:text-xs tracking-wider mb-1">
-             <Info size={16} /> System Info
+             <Info size={16} /> {t.info_system}
           </div>
           <h3 className="text-lg md:text-xl font-bold text-slate-900">Offline Smart Kiosk</h3>
           <p className="text-slate-500 text-xs md:text-sm leading-relaxed line-clamp-3">
@@ -108,7 +157,7 @@ const Home: React.FC = () => {
               <Code className="w-8 h-8 md:w-16 md:h-16" />
            </div>
            <div className="flex items-center gap-2 text-blue-400 font-bold uppercase text-[10px] md:text-xs tracking-wider mb-1 relative z-10">
-             <Users size={16} /> Credits
+             <Users size={16} /> {t.info_credits}
           </div>
           <h3 className="text-lg md:text-xl font-bold relative z-10">Project Team</h3>
           <p className="text-slate-400 text-xs md:text-sm leading-relaxed relative z-10">

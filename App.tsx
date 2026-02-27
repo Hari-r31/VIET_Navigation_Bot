@@ -8,6 +8,7 @@ import Fees from './views/Fees';
 import MobileDirections from './views/MobileDirections';
 import Assistant from './components/Assistant';
 import { Toaster } from 'react-hot-toast';
+import { LanguageProvider } from './contexts/LanguageContext';
 
 // Layout for the main kiosk application
 const KioskLayout = () => {
@@ -27,22 +28,24 @@ const KioskLayout = () => {
 // Main App Component with Routing
 const App: React.FC = () => {
   return (
-    <HashRouter>
-      <Routes>
-        {/* Mobile View - No Kiosk UI elements */}
-        <Route path="/mobile/directions" element={<MobileDirections />} />
+    <LanguageProvider>
+      <HashRouter>
+        <Routes>
+          {/* Mobile View - No Kiosk UI elements */}
+          <Route path="/mobile/directions" element={<MobileDirections />} />
 
-        {/* Kiosk Views - Wrapped in Layout */}
-        <Route element={<KioskLayout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/directions" element={<Directions />} />
-          <Route path="/fees" element={<Fees />} />
-        </Route>
+          {/* Kiosk Views - Wrapped in Layout */}
+          <Route element={<KioskLayout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/directions" element={<Directions />} />
+            <Route path="/fees" element={<Fees />} />
+          </Route>
 
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </HashRouter>
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </HashRouter>
+    </LanguageProvider>
   );
 };
 

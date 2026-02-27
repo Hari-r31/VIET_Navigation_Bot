@@ -4,12 +4,18 @@ import { CircleDollarSign, Users, ChevronDown, ArrowLeft, BookOpen, School, Chec
 import { FEES } from '../data/mockData';
 import { FeeStructure } from '../types';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const Fees: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t, speak } = useLanguage();
   const [selectedCourse, setSelectedCourse] = useState<string>('');
   const [selectedBranch, setSelectedBranch] = useState<string>('');
+
+  useEffect(() => {
+      speak(t.fee_title);
+  }, []);
 
   // Handle incoming state from Assistant
   useEffect(() => {
@@ -36,10 +42,21 @@ const Fees: React.FC = () => {
     const newCourse = e.target.value;
     setSelectedCourse(newCourse);
     setSelectedBranch(''); // Reset branch selection when course changes
+    speak(t.speak_fee_select_branch.replace('{course}', newCourse));
   };
 
   const handleBranchChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-      setSelectedBranch(e.target.value);
+      const newBranch = e.target.value;
+      setSelectedBranch(newBranch);
+      // Find fee data to announce
+      const fee = FEES.find(f => f.course === selectedCourse && f.branch === newBranch);
+      if (fee) {
+          const text = t.speak_fee_details
+            .replace('{course}', selectedCourse)
+            .replace('{branch}', newBranch)
+            .replace('{fee}', fee.annualFee.toString());
+          speak(text);
+      }
   }
 
   const handleBack = () => {
@@ -75,7 +92,7 @@ const Fees: React.FC = () => {
                 className="flex items-center gap-2 bg-white/10 backdrop-blur-md text-white px-4 py-2 rounded-xl border border-white/20 hover:bg-white/20 font-semibold transition-all group text-sm"
             >
                 <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-                Back
+                {t.dir_back}
             </button>
           </div>
 
@@ -83,7 +100,7 @@ const Fees: React.FC = () => {
               <div className="inline-flex items-center gap-2 text-blue-200 text-xs font-bold uppercase tracking-widest mb-1 opacity-80">
                  <School size={14} /> Academic Year 2025-26
               </div>
-              <h1 className="text-3xl md:text-4xl font-black text-white shadow-black drop-shadow-md">Fee Structure</h1>
+              <h1 className="text-3xl md:text-4xl font-black text-white shadow-black drop-shadow-md">{t.fee_title}</h1>
           </div>
       </div>
 
@@ -96,14 +113,14 @@ const Fees: React.FC = () => {
                   
                   {/* Course Select */}
                   <div className="w-full">
-                      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 pl-1">Select Course</label>
+                      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 pl-1">{t.fee_select_course}</label>
                       <div className="relative">
                           <select
                               value={selectedCourse}
                               onChange={handleCourseChange}
                               className="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-900 text-lg rounded-xl px-4 py-3 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 font-bold transition-all cursor-pointer hover:bg-slate-100 placeholder-slate-400"
                           >
-                              <option value="" disabled>Choose a course...</option>
+                              <option value="" disabled>{t.fee_choose_course}</option>
                               {courses.map(c => <option key={c} value={c}>{c}</option>)}
                           </select>
                           <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={20} />
@@ -112,7 +129,7 @@ const Fees: React.FC = () => {
 
                   {/* Branch Select */}
                   <div className="w-full">
-                      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 pl-1">Select Branch</label>
+                      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 pl-1">{t.fee_select_branch}</label>
                       <div className="relative">
                           <select
                               value={selectedBranch}
@@ -120,7 +137,7 @@ const Fees: React.FC = () => {
                               disabled={!selectedCourse}
                               className={`w-full appearance-none bg-slate-50 border border-slate-200 text-slate-900 text-lg rounded-xl px-4 py-3 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 font-bold transition-all cursor-pointer hover:bg-slate-100 ${!selectedCourse ? 'opacity-50 cursor-not-allowed' : ''}`}
                           >
-                              <option value="" disabled>Choose a branch...</option>
+                              <option value="" disabled>{t.fee_choose_branch}</option>
                               {branches.map(b => <option key={b} value={b}>{b}</option>)}
                           </select>
                           <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={20} />
@@ -155,7 +172,7 @@ const Fees: React.FC = () => {
                                 <div className="bg-white p-3 rounded-full text-blue-600 mb-3 shadow-sm">
                                     <Users size={24} />
                                 </div>
-                                <span className="text-slate-500 font-semibold uppercase text-[10px] tracking-widest">Total Seats</span>
+                                <span className="text-slate-500 font-semibold uppercase text-[10px] tracking-widest">{t.fee_total_seats}</span>
                                 <span className="text-4xl font-black text-slate-900 mt-1">{feeData.seats}</span>
                           </div>
 
@@ -163,7 +180,7 @@ const Fees: React.FC = () => {
                                 <div className="bg-white p-3 rounded-full text-emerald-600 mb-3 shadow-sm">
                                     <CircleDollarSign size={24} />
                                 </div>
-                                <span className="text-slate-500 font-semibold uppercase text-[10px] tracking-widest">Annual Tuition Fee</span>
+                                <span className="text-slate-500 font-semibold uppercase text-[10px] tracking-widest">{t.fee_annual_tuition}</span>
                                 <span className="text-4xl font-black text-slate-900 mt-1">₹ {feeData.annualFee.toLocaleString('en-IN')}</span>
                           </div>
                       </div>
@@ -171,7 +188,7 @@ const Fees: React.FC = () => {
                       {/* Footer Note */}
                       <div className="bg-slate-50 rounded-xl p-4 text-center">
                           <p className="text-slate-500 text-sm">
-                              * Fee includes tuition, library, and lab charges. Exam fees are separate.
+                              {t.fee_note}
                           </p>
                       </div>
 
@@ -179,8 +196,8 @@ const Fees: React.FC = () => {
               ) : (
                   <div className="flex-1 flex flex-col items-center justify-center text-slate-400 p-8 text-center opacity-50">
                       <BookOpen size={64} className="mb-4 text-slate-300" />
-                      <p className="text-xl font-medium text-slate-500">Select course & branch to view fees</p>
-                      <p className="text-sm mt-2">Details will appear here</p>
+                      <p className="text-xl font-medium text-slate-500">{t.fee_placeholder_title}</p>
+                      <p className="text-sm mt-2">{t.fee_placeholder_desc}</p>
                   </div>
               )}
           </div>
