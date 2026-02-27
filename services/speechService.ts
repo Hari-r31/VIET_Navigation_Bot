@@ -24,19 +24,33 @@ let synthesisVoice: SpeechSynthesisVoice | null = null;
 
 const getVoiceForLang = (langCode: string): SpeechSynthesisVoice | null => {
   const voices = window.speechSynthesis.getVoices();
-  // Preference: Female voice, then matching language
-  // Lang codes: 'en-IN', 'te-IN', 'hi-IN'
+  const shortLang = langCode.split('-')[0]; // 'te', 'hi', 'en'
   
-  // 1. Try to find exact match with 'female' or 'Google' (often better quality)
-  let voice = voices.find(v => v.lang === langCode && (v.name.includes('Female') || v.name.includes('Google')));
-  
-  // 2. Try any voice for that language
+  // console.log(`Looking for voice: ${langCode} (short: ${shortLang})`);
+  // console.log('Available voices:', voices.map(v => `${v.name} (${v.lang})`).join(', '));
+
+  // Priority 1: Google voices (usually higher quality) with exact lang match
+  let voice = voices.find(v => v.lang === langCode && v.name.includes('Google'));
+
+  // Priority 2: Any voice with exact lang match
   if (!voice) {
     voice = voices.find(v => v.lang === langCode);
   }
 
-  // 3. Fallback to similar language (e.g. en-US for en-IN)
-  if (!voice && langCode.startsWith('en')) {
+  // Priority 3: Fuzzy match (starts with 'te', 'hi', etc.) - Handles 'te_IN' vs 'te-IN'
+  if (!voice) {
+    voice = voices.find(v => v.lang.toLowerCase().startsWith(shortLang));
+  }
+
+  // Priority 4: Name match (Fallback if lang tags are missing/wrong)
+  if (!voice) {
+      if (shortLang === 'te') voice = voices.find(v => v.name.toLowerCase().includes('telugu'));
+      if (shortLang === 'hi') voice = voices.find(v => v.name.toLowerCase().includes('hindi'));
+      if (shortLang === 'en') voice = voices.find(v => v.name.toLowerCase().includes('english'));
+  }
+
+  // Priority 5: Fallback for English (if en-IN not found, try en-US or any en)
+  if (!voice && shortLang === 'en') {
      voice = voices.find(v => v.lang.startsWith('en'));
   }
 
@@ -67,17 +81,26 @@ export const speak = (text: string, lang: 'en' | 'te' | 'hi' = 'en') => {
   
   utterance.lang = targetLang;
   
+  const speakWithVoice = () => {
+      const voice = getVoiceForLang(targetLang);
+      if (voice) {
+          utterance.voice = voice;
+          // console.log(`Speaking in ${voice.name} (${voice.lang})`);
+      } else {
+          console.warn(`No voice found for ${targetLang}, using default.`);
+      }
+      window.speechSynthesis.speak(utterance);
+  };
+
   // Load voices if not already loaded (chrome requires this sometimes)
   if (window.speechSynthesis.getVoices().length === 0) {
       window.speechSynthesis.onvoiceschanged = () => {
-          const voice = getVoiceForLang(targetLang);
-          if (voice) utterance.voice = voice;
-          window.speechSynthesis.speak(utterance);
+          speakWithVoice();
+          // Remove listener to prevent memory leaks or multiple calls if we were to keep it
+          window.speechSynthesis.onvoiceschanged = null; 
       };
   } else {
-      const voice = getVoiceForLang(targetLang);
-      if (voice) utterance.voice = voice;
-      window.speechSynthesis.speak(utterance);
+      speakWithVoice();
   }
 };
 
