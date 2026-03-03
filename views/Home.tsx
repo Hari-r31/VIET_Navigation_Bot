@@ -65,7 +65,7 @@ const Home: React.FC = () => {
       
       {/* Back Button */}
       <button 
-        onClick={() => navigate('/welcome')}
+        onClick={() => navigate('/')}
         className="absolute top-4 right-4 z-10 p-3 bg-white/80 backdrop-blur-sm rounded-full shadow-sm border border-slate-200 text-slate-600 hover:bg-slate-100 transition-all"
       >
         <ChevronRight className="w-6 h-6 rotate-180" />

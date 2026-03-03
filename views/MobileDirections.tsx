@@ -22,7 +22,7 @@ const MobileDirections: React.FC = () => {
   }
 
   return (
-    <div className="h-screen bg-white text-slate-900 font-sans flex flex-col overflow-hidden">
+    <div className="h-[100dvh] bg-white text-slate-900 font-sans flex flex-col overflow-hidden">
        {/* Mobile Header - Fixed */}
        <div className="bg-blue-600 text-white p-4 shrink-0 shadow-md z-20">
           <div className="flex items-start gap-3">

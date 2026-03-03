@@ -481,8 +481,8 @@ const Directions: React.FC = () => {
                         </button>
                     </div>
 
-                    <div className="flex-1 flex flex-col md:flex-row min-h-0 relative">
-                        <div className="flex-1 flex flex-col relative min-h-0">
+                    <div className="flex-1 flex flex-col md:flex-row min-h-0 relative overflow-hidden md:overflow-visible">
+                        <div className="h-64 md:h-auto md:flex-1 flex flex-col relative min-h-0 shrink-0">
                              <div className="flex-1 relative bg-slate-900 overflow-hidden group">
                                 {selectedRoute.mapImage ? (
                                     <img src={selectedRoute.mapImage} className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-700" alt="Map" />
@@ -512,7 +512,7 @@ const Directions: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="w-full md:w-80 bg-slate-50/50 border-l border-slate-200 flex flex-col h-full min-h-0">
+                        <div className="w-full md:w-80 bg-slate-50/50 border-t md:border-t-0 md:border-l border-slate-200 flex flex-col flex-1 md:h-full min-h-0">
                             <div className="flex-1 p-3 overflow-y-auto custom-scrollbar">
                                 <h3 className="font-bold text-sm mb-3 text-slate-800 flex items-center gap-2">
                                     <Footprints size={14} className="text-slate-400"/> Directions

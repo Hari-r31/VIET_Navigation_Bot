@@ -38,7 +38,7 @@ const App: React.FC = () => {
       <HashRouter>
         <Routes>
           {/* Welcome Screen - Standalone */}
-          <Route path="/welcome" element={<Welcome />} />
+          <Route path="/" element={<Welcome />} />
 
           {/* Mobile View - No Kiosk UI elements */}
           <Route path="/mobile/directions" element={<MobileDirections />} />
@@ -49,12 +49,9 @@ const App: React.FC = () => {
             <Route path="/directions" element={<Directions />} />
             <Route path="/fees" element={<Fees />} />
           </Route>
-
-          {/* Default Redirect to Welcome */}
-          <Route path="/" element={<Navigate to="/welcome" replace />} />
           
           {/* Fallback */}
-          <Route path="*" element={<Navigate to="/welcome" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </HashRouter>
     </LanguageProvider>
