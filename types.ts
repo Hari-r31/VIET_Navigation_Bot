@@ -37,6 +37,7 @@ export enum IntentType {
   NAVIGATE = 'NAVIGATE',
   FEE = 'FEE',
   GREETING = 'GREETING',
+  FAQ = 'FAQ',
   UNKNOWN = 'UNKNOWN',
   CLEAR = 'CLEAR'
 }

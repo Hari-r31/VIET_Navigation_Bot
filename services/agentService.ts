@@ -2,6 +2,7 @@
 import { IntentType, AgentContext, AgentResponse, LocationData, LocationCategory } from '../types';
 import { searchLocations } from './searchService';
 import { getLocations } from '../data/mockData';
+import { FAQS } from '../data/faqData';
 
 // --- Multilingual Response Templates ---
 const RESPONSE_TEMPLATES = {
@@ -85,6 +86,13 @@ const detectIntent = (text: string): IntentType => {
   if (lower === 'clear' || lower === 'reset' || lower === 'restart') return IntentType.CLEAR;
   if (GREETINGS.some(g => lower.startsWith(g))) return IntentType.GREETING;
   if (FEE_KEYWORDS.some(k => lower.includes(k))) return IntentType.FEE;
+
+  // Check FAQs
+  const faqMatch = FAQS.find(f => 
+    lower.includes(f.question.toLowerCase()) || 
+    f.keywords.some(k => lower.includes(k.toLowerCase()))
+  );
+  if (faqMatch) return IntentType.FAQ;
   
   // Navigation is the fallback if keywords match OR if it looks like a location search
   if (NAV_KEYWORDS.some(k => lower.includes(k))) return IntentType.NAVIGATE;
@@ -311,6 +319,24 @@ export const processUserMessage = (
     case IntentType.FEE:
       const entities = extractFeeEntities(text);
       return handleFeeFlow(entities, context, t);
+
+    case IntentType.FAQ:
+      const faq = FAQS.find(f => 
+        lowerText.includes(f.question.toLowerCase()) || 
+        f.keywords.some(k => lowerText.includes(k.toLowerCase()))
+      );
+      if (faq) {
+        return {
+          message: faq.answer,
+          action: { type: 'NONE' },
+          updatedContext: context
+        };
+      }
+      return {
+          message: t.unknown,
+          action: { type: 'NONE' },
+          updatedContext: context
+      };
 
     case IntentType.NAVIGATE:
     case IntentType.UNKNOWN: // Treat unknown as potential navigation search
