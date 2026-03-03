@@ -1,137 +1,181 @@
 
-import React, { useEffect } from 'react';
-import { Map, GraduationCap, Info, Users, Sparkles, Code, School, ChevronRight, Languages } from 'lucide-react';
+import React, { useEffect, useState, useRef } from 'react';
+import { Map, GraduationCap, Sparkles, ChevronRight, Home as HomeIcon, Navigation as NavigationIcon, Mic, RefreshCw, ChevronDown, Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
-import { translations } from '../data/translations';
+import Assistant from '../components/Assistant';
+import { startWakeWordListener } from '../services/speechService';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
-  const { t, language, speak } = useLanguage();
+  const { t, language, setLanguage, speak } = useLanguage();
+  const [isAssistantActive, setIsAssistantActive] = useState(false);
+  const [startVoice, setStartVoice] = useState(false);
+  const wakeWordRef = useRef<any>(null);
 
   useEffect(() => {
     // Announce welcome message on mount
     speak(t.assist_welcome);
   }, []); // Run once on mount
 
+  // Wake word listener for Home (when Assistant is NOT active)
+  useEffect(() => {
+    if (isAssistantActive) {
+        if (wakeWordRef.current) {
+            wakeWordRef.current.stop();
+            wakeWordRef.current = null;
+        }
+        return;
+    }
+
+    const onWake = () => {
+        console.log('Home: Wake word detected!');
+        setStartVoice(true);
+        setIsAssistantActive(true);
+    };
+
+    const onError = (err: string) => {
+        // console.warn('Home wake word error:', err);
+    };
+
+    const langCode = language === 'te' ? 'te-IN' : (language === 'hi' ? 'hi-IN' : 'en-US');
+    wakeWordRef.current = startWakeWordListener(onWake, onError, langCode);
+
+    return () => {
+        if (wakeWordRef.current) wakeWordRef.current.stop();
+    };
+  }, [isAssistantActive, language]);
+
   const handleNavigation = (path: string, announcement: string) => {
       speak(announcement);
       navigate(path);
   };
 
+  const handleLanguageChange = (lang: 'en' | 'te' | 'hi') => {
+      setLanguage(lang);
+  };
+
+  const handleTouchTrigger = () => {
+    setStartVoice(false);
+    setIsAssistantActive(true);
+  };
+
   return (
-    <div className="flex flex-col h-full gap-2 animate-in fade-in duration-500">
+    <div className="flex h-full gap-6 animate-in fade-in duration-500 p-2 relative">
       
-      {/* 1. Hero - Compact */}
-      <div className="flex-shrink-0 text-center py-1 md:py-2 relative">
-        <h1 className="text-2xl md:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight mb-1 md:mb-2">
-          {language === 'en' ? (
-              <>Interactive <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">Campus Guide</span></>
-          ) : (
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">{t.home_title}</span>
-          )}
-        </h1>
-        <p className="text-sm md:text-lg text-slate-500 font-medium max-w-2xl mx-auto flex items-center justify-center gap-2">
-           <Sparkles size={16} className="text-yellow-500 fill-yellow-500" />
-           {t.home_subtitle}
-        </p>
-      </div>
+      {/* Back Button */}
+      <button 
+        onClick={() => navigate('/welcome')}
+        className="absolute top-4 right-4 z-10 p-3 bg-white/80 backdrop-blur-sm rounded-full shadow-sm border border-slate-200 text-slate-600 hover:bg-slate-100 transition-all"
+      >
+        <ChevronRight className="w-6 h-6 rotate-180" />
+      </button>
 
-      {/* 2. Primary Actions (Directions & Fees) - Flexible with min-height safety */}
-      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 min-h-0">
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col gap-6">
         
-        {/* Directions Card */}
-        <button 
-          onClick={() => handleNavigation('/directions', t.card_directions_title)}
-          className="relative overflow-hidden rounded-2xl md:rounded-3xl bg-blue-600 text-white p-4 md:p-6 text-left group shadow-lg hover:shadow-xl hover:bg-blue-700 transition-all flex flex-col justify-between h-full w-full"
+        {/* Hero Heading */}
+        <div className="flex items-center gap-3 py-2">
+            <Sparkles className="w-8 h-8 text-yellow-400 fill-yellow-400 animate-pulse" />
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-800 tracking-tight">
+                Touch or speak to <span className="text-blue-600">navigate</span> or get directions
+            </h1>
+        </div>
+
+        {/* Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-64">
+            
+            {/* Navigation Card (Blue) */}
+            <button 
+              onClick={() => handleNavigation('/directions', t.card_directions_title)}
+              className="relative overflow-hidden rounded-3xl bg-blue-600 text-white p-6 text-left group shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 flex flex-col justify-between h-full w-full"
+            >
+              <div className="absolute right-0 bottom-0 opacity-10 transform translate-x-1/4 translate-y-1/4">
+                 <Map className="w-64 h-64" />
+              </div>
+              
+              <div className="relative z-10">
+                <div className="bg-white/20 w-12 h-12 rounded-xl flex items-center justify-center backdrop-blur-md border border-white/10 shadow-inner mb-4">
+                   <Map className="w-6 h-6 text-white" />
+                </div>
+                <h2 className="text-3xl font-bold mb-2 tracking-tight">{t.card_directions_title}</h2>
+                <p className="text-blue-100 text-sm font-medium leading-relaxed max-w-xs">
+                  {t.card_directions_desc}
+                </p>
+              </div>
+
+              <div className="relative z-10 flex items-center gap-2 font-bold uppercase tracking-wider text-xs bg-black/20 w-fit px-4 py-2 rounded-full hover:bg-black/30 transition-colors">
+                 {t.btn_start_nav} <ChevronRight className="w-4 h-4" />
+              </div>
+            </button>
+
+            {/* Fee Details Card (White) */}
+            <button 
+              onClick={() => handleNavigation('/fees', t.card_fees_title)}
+              className="relative overflow-hidden rounded-3xl bg-white border border-slate-100 text-slate-900 p-6 text-left group shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 flex flex-col justify-between h-full w-full"
+            >
+              <div className="absolute right-0 bottom-0 opacity-5 transform translate-x-1/4 translate-y-1/4">
+                 <GraduationCap className="w-64 h-64" />
+              </div>
+
+              <div className="relative z-10">
+                <div className="bg-emerald-100 w-12 h-12 rounded-xl flex items-center justify-center text-emerald-700 shadow-sm mb-4">
+                   <GraduationCap className="w-6 h-6" />
+                </div>
+                <h2 className="text-3xl font-bold mb-2 tracking-tight">{t.card_fees_title}</h2>
+                <p className="text-slate-500 text-sm font-medium leading-relaxed max-w-xs">
+                  {t.card_fees_desc}
+                </p>
+              </div>
+
+              <div className="relative z-10 flex items-center gap-2 font-bold uppercase tracking-wider text-xs text-emerald-700 bg-emerald-50 w-fit px-4 py-2 rounded-full group-hover:bg-emerald-100 transition-colors">
+                 {t.btn_check_structure} <ChevronRight className="w-4 h-4" />
+              </div>
+            </button>
+
+        </div>
+
+        {/* Campus Assistant Area */}
+        <div 
+            onClick={handleTouchTrigger}
+            className="flex-1 flex flex-col items-center justify-center p-8 relative cursor-pointer group/banner min-h-[280px]"
         >
-          {/* Decor */}
-          <div className="absolute right-0 top-0 w-32 h-32 md:w-60 md:h-60 bg-white/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
-          <div className="absolute right-2 bottom-2 md:right-6 md:bottom-6 opacity-20 group-hover:scale-110 transition-transform duration-500">
-             <Map className="w-16 h-16 md:w-32 md:h-32" />
-          </div>
-          
-          <div className="relative z-10">
-            <div className="bg-white/20 w-10 h-10 md:w-14 md:h-14 rounded-xl flex items-center justify-center backdrop-blur-md border border-white/10 shadow-inner mb-2 md:mb-4">
-               <Map className="w-5 h-5 md:w-8 md:h-8 text-white" />
+            {/* Large Bot Icon */}
+            <div className="w-32 h-32 bg-white rounded-full shadow-xl flex items-center justify-center mb-6 group-hover/banner:scale-110 transition-transform duration-300 relative">
+                <div className="absolute inset-0 bg-blue-100 rounded-full animate-ping opacity-20"></div>
+                <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white shadow-inner">
+                    <Mic size={48} className="animate-pulse" />
+                </div>
+                <div className="absolute -bottom-2 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full border-2 border-white shadow-sm">
+                    LISTENING
+                </div>
             </div>
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-1 md:mb-2 tracking-tight">{t.card_directions_title}</h2>
-            <p className="text-blue-100 text-xs md:text-base font-medium max-w-xs leading-relaxed line-clamp-2 md:line-clamp-none">
-              {t.card_directions_desc}
-            </p>
-          </div>
 
-          <div className="relative z-10 flex items-center gap-2 font-bold uppercase tracking-wider text-[10px] md:text-sm mt-2 md:mt-4 bg-black/20 w-fit px-3 py-1.5 md:px-5 md:py-2.5 rounded-full hover:bg-black/30 transition-colors">
-             {t.btn_start_nav} <ChevronRight className="w-3 h-3 md:w-4 md:h-4" />
-          </div>
-        </button>
-
-        {/* Fees Card */}
-        <button 
-          onClick={() => handleNavigation('/fees', t.card_fees_title)}
-          className="relative overflow-hidden rounded-2xl md:rounded-3xl bg-white border border-slate-200 text-slate-900 p-4 md:p-6 text-left group shadow-lg hover:shadow-xl hover:border-emerald-400 transition-all flex flex-col justify-between h-full w-full"
-        >
-          {/* Decor */}
-          <div className="absolute right-0 top-0 w-32 h-32 md:w-60 md:h-60 bg-emerald-50 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
-          <div className="absolute right-2 bottom-2 md:right-6 md:bottom-6 opacity-5 group-hover:scale-110 transition-transform duration-500 text-emerald-900">
-             <GraduationCap className="w-16 h-16 md:w-32 md:h-32" />
-          </div>
-
-          <div className="relative z-10">
-            <div className="bg-emerald-100 w-10 h-10 md:w-14 md:h-14 rounded-xl flex items-center justify-center text-emerald-700 shadow-sm mb-2 md:mb-4">
-               <GraduationCap className="w-5 h-5 md:w-8 md:h-8" />
+            {/* Text */}
+            <div className="text-center max-w-lg">
+                <h3 className="text-2xl md:text-3xl font-black text-slate-800 mb-2 tracking-tight">
+                    Say "<span className="text-blue-600">Hey Champ</span>"
+                </h3>
+                <p className="text-slate-500 font-medium text-lg">
+                    or touch to start chatting
+                </p>
             </div>
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-1 md:mb-2 tracking-tight">{t.card_fees_title}</h2>
-            <p className="text-slate-500 text-xs md:text-base font-medium max-w-xs leading-relaxed line-clamp-2 md:line-clamp-none">
-              {t.card_fees_desc}
-            </p>
-          </div>
-
-          <div className="relative z-10 flex items-center gap-2 font-bold uppercase tracking-wider text-[10px] md:text-sm mt-2 md:mt-4 text-emerald-700 bg-emerald-50 w-fit px-3 py-1.5 md:px-5 md:py-2.5 rounded-full group-hover:bg-emerald-100 transition-colors">
-             {t.btn_check_structure} <ChevronRight className="w-3 h-3 md:w-4 md:h-4" />
-          </div>
-        </button>
-      </div>
-
-      {/* 3. Info Section - Compact Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 flex-shrink-0 mt-1">
-        
-        {/* College Profile */}
-        <div className="bg-white rounded-xl p-3 md:p-4 border border-slate-200 shadow-sm flex flex-col gap-1 md:gap-2 group hover:border-indigo-300 transition-colors">
-          <div className="flex items-center gap-1.5 text-indigo-600 font-bold uppercase text-[9px] md:text-[10px] tracking-wider">
-             <School size={12} /> {t.info_profile}
-          </div>
-          <h3 className="text-sm md:text-base font-bold text-slate-900 leading-tight line-clamp-1">Visakha Institute of Eng & Tech</h3>
-          <p className="text-slate-500 text-[10px] md:text-xs leading-relaxed line-clamp-2">
-             NAAC 'A' Grade • Autonomous • AICTE Approved • JNTUK Affiliated.
-          </p>
         </div>
 
-        {/* About Project */}
-        <div className="bg-white rounded-xl p-3 md:p-4 border border-slate-200 shadow-sm flex flex-col gap-1 md:gap-2 group hover:border-orange-300 transition-colors">
-           <div className="flex items-center gap-1.5 text-orange-600 font-bold uppercase text-[9px] md:text-[10px] tracking-wider">
-             <Info size={12} /> {t.info_system}
-          </div>
-          <h3 className="text-sm md:text-base font-bold text-slate-900 line-clamp-1">Offline Smart Kiosk</h3>
-          <p className="text-slate-500 text-[10px] md:text-xs leading-relaxed line-clamp-2">
-            v1.0 • React & Speech API • Offline Capable Campus Guide.
-          </p>
-        </div>
+        {isAssistantActive && (
+            <Assistant 
+                mode="modal" 
+                showFab={false}
+                defaultOpen={true}
+                onClose={() => setIsAssistantActive(false)} 
+                startVoiceOnMount={startVoice}
+            />
+        )}
 
-        {/* Development Team */}
-        <div className="bg-slate-900 rounded-xl p-3 md:p-4 shadow-sm flex flex-col gap-1 md:gap-2 text-white relative overflow-hidden group">
-           <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
-              <Code className="w-6 h-6 md:w-10 md:h-10" />
-           </div>
-           <div className="flex items-center gap-1.5 text-blue-400 font-bold uppercase text-[9px] md:text-[10px] tracking-wider relative z-10">
-             <Users size={12} /> {t.info_credits}
-          </div>
-          <h3 className="text-sm md:text-base font-bold relative z-10 line-clamp-1">Project Team</h3>
-          <p className="text-slate-400 text-[10px] md:text-xs leading-relaxed relative z-10 line-clamp-2">
-            Final Year <strong>ECE</strong> Students • Batch of 2025
-          </p>
+        {/* Instructions Footer */}
+        <div className="mt-auto p-4 bg-slate-100 rounded-2xl border border-slate-200 text-slate-600 text-sm font-medium animate-in slide-in-from-bottom-5 fade-in duration-500">
+            <p>{t.instructions_footer}</p>
         </div>
-
       </div>
 
     </div>

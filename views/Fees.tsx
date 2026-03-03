@@ -63,7 +63,7 @@ const Fees: React.FC = () => {
       if (window.history.length > 1) {
           navigate(-1);
       } else {
-          navigate('/');
+          navigate('/home');
       }
   }
 

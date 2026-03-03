@@ -6,15 +6,15 @@ export const translations = {
     header_subtitle: "Main Campus Interactive Kiosk",
     nav_home: "Home",
     nav_directions: "Navigation",
-    nav_fees: "Course Details",
+    nav_fees: "Fee Details",
     
     // Home
     home_title: "Interactive Campus Guide",
     home_subtitle: "Touch or speak to navigate",
-    card_directions_title: "Directions",
+    card_directions_title: "Navigation",
     card_directions_desc: "Find classrooms, labs, HOD cabins, and amenities in the Main Campus.",
     btn_start_nav: "Start Navigation",
-    card_fees_title: "Fee Info",
+    card_fees_title: "Fee Details",
     card_fees_desc: "Check tuition and development fees for B.Tech, MBA, and Diploma.",
     btn_check_structure: "Check Structure",
     info_profile: "Institute Profile",
@@ -74,7 +74,12 @@ export const translations = {
     speak_directions_read: "Here are the directions to {name}. {steps}",
     speak_fee_select_branch: "Selected {course}. Now choose a branch.",
     speak_fee_details: "The annual tuition fee for {course} {branch} is {fee} rupees.",
-    speak_lang_changed: "Language changed to English"
+    speak_lang_changed: "Language changed to English",
+    
+    // New Additions
+    menu_title: "Menu",
+    menu_lang: "Language",
+    instructions_footer: "Select your preferred language to interact with the assistant. You can type or speak in English, Telugu, or Hindi."
   },
   te: {
     // Header
@@ -150,7 +155,12 @@ export const translations = {
     speak_directions_read: "{name}కి దిశలు ఇక్కడ ఉన్నాయి. {steps}",
     speak_fee_select_branch: "{course} ఎంచుకోబడింది. ఇప్పుడు బ్రాంచ్‌ని ఎంచుకోండి.",
     speak_fee_details: "{course} {branch} కోసం వార్షిక ట్యూషన్ ఫీజు {fee} రూపాయలు.",
-    speak_lang_changed: "భాష తెలుగుకి మార్చబడింది"
+    speak_lang_changed: "భాష తెలుగుకి మార్చబడింది",
+    
+    // New Additions
+    menu_title: "మెనూ",
+    menu_lang: "భాష",
+    instructions_footer: "అసిస్టెంట్‌తో మాట్లాడటానికి మీకు నచ్చిన భాషను ఎంచుకోండి. మీరు ఇంగ్లీష్, తెలుగు లేదా హిందీలో టైప్ చేయవచ్చు లేదా మాట్లాడవచ్చు."
   },
   hi: {
     // Header
@@ -226,6 +236,11 @@ export const translations = {
     speak_directions_read: "{name} के लिए दिशा-निर्देश यहां दिए गए हैं। {steps}",
     speak_fee_select_branch: "{course} चुना गया। अब ब्रांच चुनें।",
     speak_fee_details: "{course} {branch} के लिए वार्षिक ट्यूशन शुल्क {fee} रुपये है।",
-    speak_lang_changed: "भाषा हिंदी में बदल दी गई है"
+    speak_lang_changed: "भाषा हिंदी में बदल दी गई है",
+    
+    // New Additions
+    menu_title: "मेनू",
+    menu_lang: "भाषा",
+    instructions_footer: "असिस्टेंट के साथ बातचीत करने के लिए अपनी पसंदीदा भाषा चुनें। आप अंग्रेजी, तेलुगु या हिंदी में टाइप कर सकते हैं या बोल सकते हैं।"
   }
 };

@@ -104,7 +104,15 @@ const MobileDirections: React.FC = () => {
               </div>
 
               {/* Footer */}
-              <div className="pt-12 pb-6 text-center mt-4">
+              <div className="pt-12 pb-6 text-center mt-4 flex flex-col items-center">
+                  <img 
+                    src="https://i.imgur.com/8J5j5j5.png" 
+                    alt="VIET Logo" 
+                    className="w-12 h-12 object-contain mb-2 opacity-50 grayscale"
+                    onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                    }}
+                  />
                   <p className="text-slate-400 text-[10px] font-semibold uppercase tracking-wider mb-1">Visakha Institute of Engineering & Technology</p>
                   <p className="text-slate-300 text-[10px]">Digital Navigation Assistant</p>
               </div>

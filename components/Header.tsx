@@ -1,82 +1,39 @@
 
 import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { Home, Map, GraduationCap, Languages, Volume2, VolumeX } from 'lucide-react';
+import { Volume2, VolumeX } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { translations } from '../data/translations';
 
 const Header: React.FC = () => {
-  const { t, language, setLanguage, speak, isVoiceEnabled, toggleVoice } = useLanguage();
-
-  const handleLanguageChange = (lang: 'en' | 'te' | 'hi') => {
-      setLanguage(lang);
-      setTimeout(() => {
-          speak(translations[lang].speak_lang_changed);
-      }, 100);
-  };
-
-  const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-all ${
-      isActive
-        ? 'bg-blue-600 text-white shadow-md'
-        : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
-    }`;
+  const { t, isVoiceEnabled, toggleVoice } = useLanguage();
 
   return (
-    <header className="bg-white border-b border-slate-200 px-6 py-4 shadow-sm z-30 flex flex-col md:flex-row justify-between items-center gap-4">
-      <div className="flex flex-col text-center md:text-left">
-        <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
-          {t.header_title}
-        </h1>
-        <p className="text-slate-500 text-xs md:text-sm font-medium">{t.header_subtitle}</p>
+    <header className="bg-white border-b border-slate-200 px-6 py-4 shadow-sm z-30 flex justify-between items-center relative">
+      <div className="flex items-center gap-3">
+        <img 
+            src="https://i.imgur.com/8J5j5j5.png" 
+            alt="VIET Logo" 
+            className="w-12 h-12 md:w-14 md:h-14 object-contain"
+            onError={(e) => {
+                e.currentTarget.src = "https://placehold.co/100x100?text=VIET";
+            }}
+        />
+        <div>
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight leading-tight">
+            Visakha Institute of Engineering & Technology <span className="text-blue-600">[VSPT]</span>
+            </h1>
+            <p className="text-slate-500 text-xs md:text-sm font-medium">Main Campus Interactive Kiosk</p>
+        </div>
       </div>
 
       <div className="flex items-center gap-4">
         {/* Voice Toggle */}
         <button
             onClick={toggleVoice}
-            className={`p-2 rounded-full transition-all ${isVoiceEnabled ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-400'}`}
+            className={`p-3 rounded-full transition-all ${isVoiceEnabled ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-400'}`}
             title={isVoiceEnabled ? "Mute Voice" : "Enable Voice"}
         >
-            {isVoiceEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
+            {isVoiceEnabled ? <Volume2 size={24} /> : <VolumeX size={24} />}
         </button>
-
-        {/* Language Switcher Mini */}
-        <div className="flex bg-slate-100 rounded-lg p-1">
-          <button 
-            onClick={() => handleLanguageChange('en')} 
-            className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${language === 'en' ? 'bg-white shadow text-blue-600' : 'text-slate-500'}`}
-          >
-            EN
-          </button>
-          <button 
-            onClick={() => handleLanguageChange('te')} 
-            className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${language === 'te' ? 'bg-white shadow text-blue-600' : 'text-slate-500'}`}
-          >
-            తె
-          </button>
-          <button 
-            onClick={() => handleLanguageChange('hi')} 
-            className={`px-3 py-1 rounded-md text-xs font-bold transition-all ${language === 'hi' ? 'bg-white shadow text-blue-600' : 'text-slate-500'}`}
-          >
-            हि
-          </button>
-        </div>
-
-        <nav className="flex items-center gap-2 md:gap-4 bg-white/50 backdrop-blur-sm p-1 rounded-full">
-          <NavLink to="/" className={navLinkClass}>
-            <Home size={18} />
-            <span className="hidden md:inline">{t.nav_home}</span>
-          </NavLink>
-          <NavLink to="/directions" className={navLinkClass}>
-            <Map size={18} />
-            <span>{t.nav_directions}</span>
-          </NavLink>
-          <NavLink to="/fees" className={navLinkClass}>
-            <GraduationCap size={18} />
-            <span>{t.nav_fees}</span>
-          </NavLink>
-        </nav>
       </div>
     </header>
   );

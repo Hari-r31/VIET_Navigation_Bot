@@ -213,3 +213,55 @@ export const startListening = (
     return null;
   }
 };
+
+export const startWakeWordListener = (
+  onWake: () => void,
+  onError: (error: string) => void,
+  langCode: string = 'en-US'
+) => {
+  const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    onError('Speech recognition not supported in this browser.');
+    return null;
+  }
+
+  const recognition = new SpeechRecognition();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.lang = langCode;
+
+  recognition.onresult = (event: any) => {
+    for (let i = event.resultIndex; i < event.results.length; ++i) {
+      const transcript = event.results[i][0].transcript.toLowerCase().trim();
+      
+      // Check for wake words in both interim and final results for faster response
+      if (transcript.includes('hey campus') || 
+          transcript.includes('hello campus') || 
+          transcript.includes('hello viet') ||
+          transcript.includes('hey viet') ||
+          transcript.includes('campus guide') ||
+          transcript.includes('hey champ') ||
+          transcript.includes('hello champ')) {
+        
+        recognition.stop();
+        onWake();
+        return;
+      }
+    }
+  };
+
+  recognition.onerror = (event: any) => {
+      // Ignore benign errors
+      if (event.error === 'no-speech' || event.error === 'aborted') return;
+      console.warn('Wake word error:', event.error);
+  };
+
+  try {
+    recognition.start();
+    return recognition;
+  } catch (e) {
+    console.error('Failed to start wake word recognition', e);
+    return null;
+  }
+};

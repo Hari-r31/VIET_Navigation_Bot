@@ -173,7 +173,8 @@ const Directions: React.FC = () => {
     }
 
     if (navState.academicProgram) {
-      setNavState(prev => ({ ...prev, academicProgram: undefined }));
+      // Since we auto-select B.Tech for Academic, going back should take us to Section Selection
+      setNavState(prev => ({ ...prev, academicProgram: undefined, mainBlockSection: undefined }));
       return;
     }
 
@@ -191,7 +192,7 @@ const Directions: React.FC = () => {
     if (window.history.length > 1) {
       navigate(-1);
     } else {
-      navigate('/');
+      navigate('/home');
     }
   };
 
@@ -203,8 +204,8 @@ const Directions: React.FC = () => {
   const getLocationsForDept = (dept: string, program: string) => {
       return currentLocations.filter(l => 
         l.department === dept && 
-        l.program === program && 
-        l.block.includes(language === 'en' ? 'Main Block' : (language === 'te' ? 'మెయిన్ బ్లాక్' : 'मेन ब्लॉक')) // Simplified check or check ID
+        (l.program === program || !l.program) && 
+        l.block.includes(language === 'en' ? 'Main Block' : (language === 'te' ? 'మెయిన్ బ్లాక్' : 'मेन ब्लॉक'))
       );
   };
 
@@ -281,8 +282,8 @@ const Directions: React.FC = () => {
              </div>
         </button>
         
-        {/* Academic */}
-        <button onClick={() => setNavState({ ...navState, mainBlockSection: 'academic' })} className="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-slate-200 hover:border-blue-500 transition-all text-left flex flex-col items-start gap-4 group h-full">
+        {/* Academic - Defaults to B.Tech */}
+        <button onClick={() => setNavState({ ...navState, mainBlockSection: 'academic', academicProgram: 'B.Tech' })} className="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-slate-200 hover:border-blue-500 transition-all text-left flex flex-col items-start gap-4 group h-full">
              <div className="bg-blue-100 p-4 rounded-full text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
                 <GraduationCap size={32} />
              </div>
@@ -305,29 +306,12 @@ const Directions: React.FC = () => {
     </div>
   );
 
-  // 4. Academic: Program Selection
-  const renderProgramSelection = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in slide-in-from-right-4 duration-500 max-w-2xl mx-auto">
-         <button onClick={() => setNavState({ ...navState, academicProgram: 'B.Tech' })} className="bg-white p-8 rounded-2xl shadow-lg border border-slate-200 hover:border-blue-500 transition-all text-center group">
-             <div className="bg-indigo-100 w-16 h-16 rounded-full flex items-center justify-center text-indigo-600 mx-auto mb-4 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                <BookOpen size={32} />
-             </div>
-             <h3 className="text-2xl font-black text-slate-900">B.Tech</h3>
-             <p className="text-slate-500 mt-1">Bachelor of Technology</p>
-        </button>
-        <button onClick={() => setNavState({ ...navState, academicProgram: 'M.Tech' })} className="bg-white p-8 rounded-2xl shadow-lg border border-slate-200 hover:border-blue-500 transition-all text-center group">
-             <div className="bg-violet-100 w-16 h-16 rounded-full flex items-center justify-center text-violet-600 mx-auto mb-4 group-hover:bg-violet-600 group-hover:text-white transition-colors">
-                <Users size={32} />
-             </div>
-             <h3 className="text-2xl font-black text-slate-900">M.Tech</h3>
-             <p className="text-slate-500 mt-1">Master of Technology</p>
-        </button>
-    </div>
-  );
+  // 4. Academic: Program Selection - REMOVED
 
   // 5. Academic: Department List (based on Program)
   const renderDepartmentList = () => {
-    const depts = navState.academicProgram === 'B.Tech' ? getBTechDepartments() : getMTechDepartments();
+    // Default to B.Tech departments since we removed the selection
+    const depts = getBTechDepartments();
     return (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 animate-in slide-in-from-right-4 duration-500">
             {depts.map(d => (
@@ -579,58 +563,58 @@ const Directions: React.FC = () => {
                 <div className="w-full max-w-5xl mx-auto">
                     {(navState.block) && renderBreadcrumbs()}
 
+                    {/* 1. BLOCK SELECTION */}
                     {!navState.block && (
-                        <div>
-                             <h2 className="text-white text-3xl font-bold mb-6 text-center shadow-black drop-shadow-md">{t.dir_select_block}</h2>
+                        <div className="animate-in fade-in zoom-in duration-300">
+                             <h2 className="text-white text-3xl font-bold mb-8 text-center drop-shadow-md">{t.dir_select_block}</h2>
                              {renderBlockSelection()}
                         </div>
                     )}
 
+                    {/* 2. CAMPUS FACILITIES (Sub-menu) */}
                     {navState.block === 'Campus Facilities' && (
-                        <div>
-                            <h2 className="text-white text-3xl font-bold mb-6 text-center drop-shadow-md">{t.dir_select_amenity}</h2>
+                        <div className="animate-in fade-in slide-in-from-right duration-300">
+                            <h2 className="text-white text-3xl font-bold mb-8 text-center drop-shadow-md">{t.dir_select_amenity}</h2>
                             {renderFacilitiesSelection()}
                         </div>
                     )}
 
+                    {/* 3. MAIN BLOCK - SECTIONS (Admin, Academic, Amenities) */}
                     {navState.block === 'Main Block' && !navState.mainBlockSection && (
-                        <div>
-                             <h2 className="text-white text-3xl font-bold mb-6 text-center drop-shadow-md">{t.dir_what_looking}</h2>
+                        <div className="animate-in fade-in slide-in-from-right duration-300">
+                             <h2 className="text-white text-3xl font-bold mb-8 text-center drop-shadow-md">{t.dir_what_looking}</h2>
                              {renderMainBlockSectionSelection()}
                         </div>
                     )}
 
-                    {navState.mainBlockSection === 'administrative' && (
-                        <div>
-                            <h2 className="text-white text-3xl font-bold mb-6 text-center drop-shadow-md">{t.dir_admin_offices}</h2>
+                    {/* 4. MAIN BLOCK - ADMIN LIST */}
+                    {navState.block === 'Main Block' && navState.mainBlockSection === 'administrative' && (
+                        <div className="animate-in fade-in slide-in-from-right duration-300">
+                            <h2 className="text-white text-3xl font-bold mb-8 text-center drop-shadow-md">{t.dir_admin_offices}</h2>
                             {renderLocationList(getAdminLocations())}
                         </div>
                     )}
 
-                    {navState.mainBlockSection === 'academic' && !navState.academicProgram && (
-                        <div>
-                            <h2 className="text-white text-3xl font-bold mb-6 text-center drop-shadow-md">{t.dir_select_program}</h2>
-                            {renderProgramSelection()}
-                        </div>
-                    )}
-
-                    {navState.academicProgram && !navState.department && (
-                        <div>
-                            <h2 className="text-white text-3xl font-bold mb-6 text-center drop-shadow-md">{t.dir_select_dept}</h2>
+                    {/* 5. MAIN BLOCK - ACADEMIC - DEPARTMENT SELECTION */}
+                    {navState.block === 'Main Block' && navState.academicProgram && !navState.department && (
+                        <div className="animate-in fade-in slide-in-from-right duration-300">
+                            <h2 className="text-white text-3xl font-bold mb-8 text-center drop-shadow-md">{t.dir_select_dept}</h2>
                             {renderDepartmentList()}
                         </div>
                     )}
 
-                    {navState.department && (
-                        <div>
-                            <h2 className="text-white text-3xl font-bold mb-6 text-center drop-shadow-md">{navState.department} Facilities</h2>
+                    {/* 7. MAIN BLOCK - ACADEMIC - DEPARTMENT FACILITIES LIST */}
+                    {navState.block === 'Main Block' && navState.department && (
+                        <div className="animate-in fade-in slide-in-from-right duration-300">
+                            <h2 className="text-white text-3xl font-bold mb-8 text-center drop-shadow-md">{navState.department} Facilities</h2>
                             {renderLocationList(getLocationsForDept(navState.department, navState.academicProgram!))}
                         </div>
                     )}
 
-                    {navState.mainBlockSection === 'amenities' && (
-                        <div>
-                            <h2 className="text-white text-3xl font-bold mb-6 text-center drop-shadow-md">{t.dir_common_utils}</h2>
+                    {/* 8. MAIN BLOCK - AMENITIES LIST */}
+                    {navState.block === 'Main Block' && navState.mainBlockSection === 'amenities' && (
+                        <div className="animate-in fade-in slide-in-from-right duration-300">
+                            <h2 className="text-white text-3xl font-bold mb-8 text-center drop-shadow-md">{t.dir_common_utils}</h2>
                             {renderLocationList(getMainBlockAmenities())}
                         </div>
                     )}
