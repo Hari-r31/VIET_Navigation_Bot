@@ -85,62 +85,62 @@ const Fees: React.FC = () => {
       </div>
 
       {/* Top Header Section - Compact */}
-      <div className="relative z-10 flex-none p-4 pt-6 flex items-center justify-center">
-          <div className="absolute left-4 top-6">
+      <div className="relative z-10 flex-none p-3 pt-4 flex items-center justify-center">
+          <div className="absolute left-4 top-4">
             <button 
                 onClick={handleBack} 
-                className="flex items-center gap-2 bg-white/10 backdrop-blur-md text-white px-4 py-2 rounded-xl border border-white/20 hover:bg-white/20 font-semibold transition-all group text-sm"
+                className="flex items-center gap-2 bg-white/10 backdrop-blur-md text-white px-3 py-1.5 rounded-xl border border-white/20 hover:bg-white/20 font-semibold transition-all group text-xs"
             >
-                <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+                <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
                 {t.dir_back}
             </button>
           </div>
 
           <div className="text-center">
-              <div className="inline-flex items-center gap-2 text-blue-200 text-xs font-bold uppercase tracking-widest mb-1 opacity-80">
-                 <School size={14} /> Academic Year 2025-26
+              <div className="inline-flex items-center gap-2 text-blue-200 text-[10px] font-bold uppercase tracking-widest mb-0.5 opacity-80">
+                 <School size={12} /> Academic Year 2025-26
               </div>
-              <h1 className="text-3xl md:text-4xl font-black text-white shadow-black drop-shadow-md">{t.fee_title}</h1>
+              <h1 className="text-2xl md:text-3xl font-black text-white shadow-black drop-shadow-md">{t.fee_title}</h1>
           </div>
       </div>
 
       {/* Main Content Container - Vertical Flex */}
-      <div className="relative z-10 flex-1 min-h-0 flex flex-col items-center p-4 pb-20 w-full max-w-4xl mx-auto gap-4">
+      <div className="relative z-10 flex-1 min-h-0 flex flex-col items-center p-3 pb-4 w-full max-w-4xl mx-auto gap-3">
           
           {/* Top: Selection Panel */}
-          <div className="w-full bg-white rounded-3xl p-6 shadow-xl animate-in slide-in-from-top-4 duration-500 flex-none">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="w-full bg-white rounded-2xl p-4 shadow-xl animate-in slide-in-from-top-4 duration-500 flex-none">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   
                   {/* Course Select */}
                   <div className="w-full">
-                      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 pl-1">{t.fee_select_course}</label>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 pl-1">{t.fee_select_course}</label>
                       <div className="relative">
                           <select
                               value={selectedCourse}
                               onChange={handleCourseChange}
-                              className="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-900 text-lg rounded-xl px-4 py-3 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 font-bold transition-all cursor-pointer hover:bg-slate-100 placeholder-slate-400"
+                              className="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-900 text-base rounded-xl px-3 py-2 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 font-bold transition-all cursor-pointer hover:bg-slate-100 placeholder-slate-400"
                           >
                               <option value="" disabled>{t.fee_choose_course}</option>
                               {courses.map(c => <option key={c} value={c}>{c}</option>)}
                           </select>
-                          <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={20} />
+                          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
                       </div>
                   </div>
 
                   {/* Branch Select */}
                   <div className="w-full">
-                      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 pl-1">{t.fee_select_branch}</label>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 pl-1">{t.fee_select_branch}</label>
                       <div className="relative">
                           <select
                               value={selectedBranch}
                               onChange={handleBranchChange}
                               disabled={!selectedCourse}
-                              className={`w-full appearance-none bg-slate-50 border border-slate-200 text-slate-900 text-lg rounded-xl px-4 py-3 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 font-bold transition-all cursor-pointer hover:bg-slate-100 ${!selectedCourse ? 'opacity-50 cursor-not-allowed' : ''}`}
+                              className={`w-full appearance-none bg-slate-50 border border-slate-200 text-slate-900 text-base rounded-xl px-3 py-2 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 font-bold transition-all cursor-pointer hover:bg-slate-100 ${!selectedCourse ? 'opacity-50 cursor-not-allowed' : ''}`}
                           >
                               <option value="" disabled>{t.fee_choose_branch}</option>
                               {branches.map(b => <option key={b} value={b}>{b}</option>)}
                           </select>
-                          <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={20} />
+                          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
                       </div>
                   </div>
 
@@ -148,56 +148,56 @@ const Fees: React.FC = () => {
           </div>
 
           {/* Bottom: Results Panel */}
-          <div className="w-full flex-1 min-h-0 bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/20 animate-in slide-in-from-bottom-8 duration-500 relative flex flex-col">
+          <div className="w-full flex-1 min-h-0 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden border border-white/20 animate-in slide-in-from-bottom-8 duration-500 relative flex flex-col">
               {feeData ? (
-                  <div className="flex-1 overflow-y-auto p-6 md:p-8 animate-in fade-in duration-300">
+                  <div className="flex-1 flex flex-col p-4 animate-in fade-in duration-300 overflow-hidden">
                       
                       {/* Result Header */}
-                      <div className="flex justify-between items-start mb-6">
+                      <div className="flex justify-between items-start mb-4 flex-none">
                         <div>
-                            <div className="flex items-center gap-3 mb-2">
-                                <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-lg font-bold text-xs uppercase tracking-wide">{feeData.course}</span>
-                                <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-lg font-bold text-xs uppercase tracking-wide">{feeData.branch}</span>
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-md font-bold text-[10px] uppercase tracking-wide">{feeData.course}</span>
+                                <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-bold text-[10px] uppercase tracking-wide">{feeData.branch}</span>
                             </div>
-                            <h2 className="text-3xl font-black text-slate-900">{feeData.description || `${feeData.course} - ${feeData.branch}`}</h2>
+                            <h2 className="text-2xl font-black text-slate-900 leading-tight">{feeData.description || `${feeData.course} - ${feeData.branch}`}</h2>
                         </div>
-                        <div className="bg-green-100 text-green-700 p-2 rounded-full shadow-sm">
-                            <Check size={24} />
+                        <div className="bg-green-100 text-green-700 p-1.5 rounded-full shadow-sm">
+                            <Check size={18} />
                         </div>
                       </div>
 
                       {/* Result Grid */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                          <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100 flex flex-col items-center justify-center text-center">
-                                <div className="bg-white p-3 rounded-full text-blue-600 mb-3 shadow-sm">
-                                    <Users size={24} />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 flex-1 min-h-0">
+                          <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 flex flex-col items-center justify-center text-center h-full">
+                                <div className="bg-white p-2 rounded-full text-blue-600 mb-2 shadow-sm">
+                                    <Users size={20} />
                                 </div>
                                 <span className="text-slate-500 font-semibold uppercase text-[10px] tracking-widest">{t.fee_total_seats}</span>
-                                <span className="text-4xl font-black text-slate-900 mt-1">{feeData.seats}</span>
+                                <span className="text-3xl font-black text-slate-900 mt-1">{feeData.seats}</span>
                           </div>
 
-                          <div className="bg-emerald-50/50 p-6 rounded-2xl border border-emerald-100 flex flex-col items-center justify-center text-center">
-                                <div className="bg-white p-3 rounded-full text-emerald-600 mb-3 shadow-sm">
-                                    <CircleDollarSign size={24} />
+                          <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 flex flex-col items-center justify-center text-center h-full">
+                                <div className="bg-white p-2 rounded-full text-emerald-600 mb-2 shadow-sm">
+                                    <CircleDollarSign size={20} />
                                 </div>
                                 <span className="text-slate-500 font-semibold uppercase text-[10px] tracking-widest">{t.fee_annual_tuition}</span>
-                                <span className="text-4xl font-black text-slate-900 mt-1">₹ {feeData.annualFee.toLocaleString('en-IN')}</span>
+                                <span className="text-3xl font-black text-slate-900 mt-1">₹ {feeData.annualFee.toLocaleString('en-IN')}</span>
                           </div>
                       </div>
 
                       {/* Footer Note */}
-                      <div className="bg-slate-50 rounded-xl p-4 text-center">
-                          <p className="text-slate-500 text-sm">
+                      <div className="bg-slate-50 rounded-xl p-3 text-center flex-none">
+                          <p className="text-slate-500 text-xs leading-tight">
                               {t.fee_note}
                           </p>
                       </div>
 
                   </div>
               ) : (
-                  <div className="flex-1 flex flex-col items-center justify-center text-slate-400 p-8 text-center opacity-50">
-                      <BookOpen size={64} className="mb-4 text-slate-300" />
-                      <p className="text-xl font-medium text-slate-500">{t.fee_placeholder_title}</p>
-                      <p className="text-sm mt-2">{t.fee_placeholder_desc}</p>
+                  <div className="flex-1 flex flex-col items-center justify-center text-slate-400 p-6 text-center opacity-50">
+                      <BookOpen size={48} className="mb-3 text-slate-300" />
+                      <p className="text-lg font-medium text-slate-500">{t.fee_placeholder_title}</p>
+                      <p className="text-xs mt-1">{t.fee_placeholder_desc}</p>
                   </div>
               )}
           </div>

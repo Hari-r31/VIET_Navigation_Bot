@@ -220,87 +220,87 @@ const Directions: React.FC = () => {
 
   // 1. Root: Select Block
   const renderBlockSelection = () => (
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-6 animate-in slide-in-from-bottom-4 duration-500">
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 animate-in slide-in-from-bottom-4 duration-500">
       {/* Main Block */}
-      <button onClick={() => setNavState({ ...navState, block: 'Main Block' })} className="bg-white p-8 rounded-2xl shadow-lg border border-slate-200 hover:border-blue-500 hover:shadow-blue-500/20 transition-all text-left group">
-          <div className="bg-blue-100 w-14 h-14 rounded-full flex items-center justify-center text-blue-600 mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors"><Building size={28} /></div>
-          <h3 className="text-xl font-bold text-slate-900">{t.cat_main_block}</h3>
-          <p className="text-slate-500 text-sm mt-1">Admin, B.Tech & M.Tech</p>
+      <button onClick={() => setNavState({ ...navState, block: 'Main Block' })} className="bg-white p-4 rounded-xl shadow-lg border border-slate-200 hover:border-blue-500 hover:shadow-blue-500/20 transition-all text-left group">
+          <div className="bg-blue-100 w-10 h-10 rounded-full flex items-center justify-center text-blue-600 mb-3 group-hover:bg-blue-600 group-hover:text-white transition-colors"><Building size={20} /></div>
+          <h3 className="text-base font-bold text-slate-900">{t.cat_main_block}</h3>
+          <p className="text-slate-500 text-xs mt-0.5">Admin, B.Tech & M.Tech</p>
       </button>
 
       {/* Direct Blocks */}
-      <button onClick={() => handleSelectLocation(findLoc('mba-block')!)} className="bg-white p-8 rounded-2xl shadow-lg border border-slate-200 hover:border-blue-500 hover:shadow-blue-500/20 transition-all text-left group">
-          <div className="bg-purple-100 w-14 h-14 rounded-full flex items-center justify-center text-purple-600 mb-4 group-hover:bg-purple-600 group-hover:text-white transition-colors"><Briefcase size={28} /></div>
-          <h3 className="text-xl font-bold text-slate-900">{t.cat_mba_block}</h3>
-          <p className="text-slate-500 text-sm mt-1">Direct Navigation</p>
+      <button onClick={() => handleSelectLocation(findLoc('mba-block')!)} className="bg-white p-4 rounded-xl shadow-lg border border-slate-200 hover:border-blue-500 hover:shadow-blue-500/20 transition-all text-left group">
+          <div className="bg-purple-100 w-10 h-10 rounded-full flex items-center justify-center text-purple-600 mb-3 group-hover:bg-purple-600 group-hover:text-white transition-colors"><Briefcase size={20} /></div>
+          <h3 className="text-base font-bold text-slate-900">{t.cat_mba_block}</h3>
+          <p className="text-slate-500 text-xs mt-0.5">Direct Navigation</p>
       </button>
 
-      <button onClick={() => handleSelectLocation(findLoc('diploma-block')!)} className="bg-white p-8 rounded-2xl shadow-lg border border-slate-200 hover:border-blue-500 hover:shadow-blue-500/20 transition-all text-left group">
-          <div className="bg-orange-100 w-14 h-14 rounded-full flex items-center justify-center text-orange-600 mb-4 group-hover:bg-orange-600 group-hover:text-white transition-colors"><GraduationCap size={28} /></div>
-          <h3 className="text-xl font-bold text-slate-900">{t.cat_diploma_block}</h3>
-          <p className="text-slate-500 text-sm mt-1">Direct Navigation</p>
+      <button onClick={() => handleSelectLocation(findLoc('diploma-block')!)} className="bg-white p-4 rounded-xl shadow-lg border border-slate-200 hover:border-blue-500 hover:shadow-blue-500/20 transition-all text-left group">
+          <div className="bg-orange-100 w-10 h-10 rounded-full flex items-center justify-center text-orange-600 mb-3 group-hover:bg-orange-600 group-hover:text-white transition-colors"><GraduationCap size={20} /></div>
+          <h3 className="text-base font-bold text-slate-900">{t.cat_diploma_block}</h3>
+          <p className="text-slate-500 text-xs mt-0.5">Direct Navigation</p>
       </button>
 
       {/* Campus Facilities Group (formerly Amenities + Grounds) */}
-      <button onClick={() => setNavState({...navState, block: 'Campus Facilities'})} className="bg-white p-8 rounded-2xl shadow-lg border border-slate-200 hover:border-blue-500 hover:shadow-blue-500/20 transition-all text-left group">
-          <div className="bg-yellow-100 w-14 h-14 rounded-full flex items-center justify-center text-yellow-600 mb-4 group-hover:bg-yellow-600 group-hover:text-white transition-colors"><Coffee size={28} /></div>
-          <h3 className="text-xl font-bold text-slate-900">{t.cat_facilities}</h3>
-          <p className="text-slate-500 text-sm mt-1">Grounds, Canteen, Mess</p>
+      <button onClick={() => setNavState({...navState, block: 'Campus Facilities'})} className="bg-white p-4 rounded-xl shadow-lg border border-slate-200 hover:border-blue-500 hover:shadow-blue-500/20 transition-all text-left group">
+          <div className="bg-yellow-100 w-10 h-10 rounded-full flex items-center justify-center text-yellow-600 mb-3 group-hover:bg-yellow-600 group-hover:text-white transition-colors"><Coffee size={20} /></div>
+          <h3 className="text-base font-bold text-slate-900">{t.cat_facilities}</h3>
+          <p className="text-slate-500 text-xs mt-0.5">Grounds, Canteen, Mess</p>
       </button>
     </div>
   );
 
   // 2. Facilities Selection (If Campus Facilities Block selected)
   const renderFacilitiesSelection = () => (
-     <div className="grid grid-cols-2 md:grid-cols-3 gap-6 animate-in slide-in-from-right-4 duration-500">
-        <button onClick={() => handleSelectLocation(findLoc('grounds')!)} className="bg-white p-6 rounded-2xl shadow-lg border hover:border-blue-500 group text-left">
-            <div className="bg-green-100 w-12 h-12 rounded-xl flex items-center justify-center text-green-600 mb-3 group-hover:bg-green-600 group-hover:text-white"><Footprints size={24}/></div>
-            <h3 className="text-lg font-bold">{t.cat_grounds}</h3>
+     <div className="grid grid-cols-2 md:grid-cols-3 gap-3 animate-in slide-in-from-right-4 duration-500">
+        <button onClick={() => handleSelectLocation(findLoc('grounds')!)} className="bg-white p-4 rounded-xl shadow-lg border hover:border-blue-500 group text-left">
+            <div className="bg-green-100 w-10 h-10 rounded-xl flex items-center justify-center text-green-600 mb-2 group-hover:bg-green-600 group-hover:text-white"><Footprints size={20}/></div>
+            <h3 className="text-sm font-bold">{t.cat_grounds}</h3>
         </button>
-        <button onClick={() => handleSelectLocation(findLoc('canteen')!)} className="bg-white p-6 rounded-2xl shadow-lg border hover:border-blue-500 group text-left">
-            <div className="bg-yellow-100 w-12 h-12 rounded-xl flex items-center justify-center text-yellow-600 mb-3 group-hover:bg-yellow-600 group-hover:text-white"><Coffee size={24}/></div>
-            <h3 className="text-lg font-bold">{t.cat_canteen}</h3>
+        <button onClick={() => handleSelectLocation(findLoc('canteen')!)} className="bg-white p-4 rounded-xl shadow-lg border hover:border-blue-500 group text-left">
+            <div className="bg-yellow-100 w-10 h-10 rounded-xl flex items-center justify-center text-yellow-600 mb-2 group-hover:bg-yellow-600 group-hover:text-white"><Coffee size={20}/></div>
+            <h3 className="text-sm font-bold">{t.cat_canteen}</h3>
         </button>
-        <button onClick={() => handleSelectLocation(findLoc('mess')!)} className="bg-white p-6 rounded-2xl shadow-lg border hover:border-blue-500 group text-left">
-            <div className="bg-orange-100 w-12 h-12 rounded-xl flex items-center justify-center text-orange-600 mb-3 group-hover:bg-orange-600 group-hover:text-white"><Coffee size={24}/></div>
-            <h3 className="text-lg font-bold">{t.cat_mess}</h3>
+        <button onClick={() => handleSelectLocation(findLoc('mess')!)} className="bg-white p-4 rounded-xl shadow-lg border hover:border-blue-500 group text-left">
+            <div className="bg-orange-100 w-10 h-10 rounded-xl flex items-center justify-center text-orange-600 mb-2 group-hover:bg-orange-600 group-hover:text-white"><Coffee size={20}/></div>
+            <h3 className="text-sm font-bold">{t.cat_mess}</h3>
         </button>
      </div>
   );
 
   // 3. Main Block: Section Selection
   const renderMainBlockSectionSelection = () => (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in slide-in-from-right-4 duration-500 max-w-4xl mx-auto">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 animate-in slide-in-from-right-4 duration-500 max-w-4xl mx-auto">
         {/* Admin */}
-        <button onClick={() => setNavState({ ...navState, mainBlockSection: 'administrative' })} className="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-slate-200 hover:border-blue-500 transition-all text-left flex flex-col items-start gap-4 group h-full">
-             <div className="bg-slate-100 p-4 rounded-full text-slate-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                <Briefcase size={32} />
+        <button onClick={() => setNavState({ ...navState, mainBlockSection: 'administrative' })} className="bg-white p-4 rounded-xl shadow-lg border border-slate-200 hover:border-blue-500 transition-all text-left flex flex-col items-start gap-3 group h-full">
+             <div className="bg-slate-100 p-3 rounded-full text-slate-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                <Briefcase size={24} />
              </div>
              <div>
-                <h3 className="text-xl font-bold text-slate-900">{t.sec_admin}</h3>
-                <p className="text-slate-500 text-sm mt-1">Principal, Office, Exam Cell</p>
+                <h3 className="text-base font-bold text-slate-900">{t.sec_admin}</h3>
+                <p className="text-slate-500 text-xs mt-0.5">Principal, Office, Exam Cell</p>
              </div>
         </button>
         
         {/* Academic - Defaults to B.Tech */}
-        <button onClick={() => setNavState({ ...navState, mainBlockSection: 'academic', academicProgram: 'B.Tech' })} className="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-slate-200 hover:border-blue-500 transition-all text-left flex flex-col items-start gap-4 group h-full">
-             <div className="bg-blue-100 p-4 rounded-full text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                <GraduationCap size={32} />
+        <button onClick={() => setNavState({ ...navState, mainBlockSection: 'academic', academicProgram: 'B.Tech' })} className="bg-white p-4 rounded-xl shadow-lg border border-slate-200 hover:border-blue-500 transition-all text-left flex flex-col items-start gap-3 group h-full">
+             <div className="bg-blue-100 p-3 rounded-full text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                <GraduationCap size={24} />
              </div>
              <div>
-                <h3 className="text-xl font-bold text-slate-900">{t.sec_academic}</h3>
-                <p className="text-slate-500 text-sm mt-1">Departments, Classes, Labs</p>
+                <h3 className="text-base font-bold text-slate-900">{t.sec_academic}</h3>
+                <p className="text-slate-500 text-xs mt-0.5">Departments, Classes, Labs</p>
              </div>
         </button>
 
         {/* Amenities */}
-         <button onClick={() => setNavState({ ...navState, mainBlockSection: 'amenities' })} className="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-slate-200 hover:border-blue-500 transition-all text-left flex flex-col items-start gap-4 group h-full">
-             <div className="bg-teal-100 p-4 rounded-full text-teal-600 group-hover:bg-teal-600 group-hover:text-white transition-colors">
-                <Droplets size={32} />
+         <button onClick={() => setNavState({ ...navState, mainBlockSection: 'amenities' })} className="bg-white p-4 rounded-xl shadow-lg border border-slate-200 hover:border-blue-500 transition-all text-left flex flex-col items-start gap-3 group h-full">
+             <div className="bg-teal-100 p-3 rounded-full text-teal-600 group-hover:bg-teal-600 group-hover:text-white transition-colors">
+                <Droplets size={24} />
              </div>
              <div>
-                <h3 className="text-xl font-bold text-slate-900">{t.sec_utilities}</h3>
-                <p className="text-slate-500 text-sm mt-1">Washrooms, Water, Rest Rooms</p>
+                <h3 className="text-base font-bold text-slate-900">{t.sec_utilities}</h3>
+                <p className="text-slate-500 text-xs mt-0.5">Washrooms, Water, Rest Rooms</p>
              </div>
         </button>
     </div>
@@ -313,11 +313,11 @@ const Directions: React.FC = () => {
     // Default to B.Tech departments since we removed the selection
     const depts = getBTechDepartments();
     return (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 animate-in slide-in-from-right-4 duration-500">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 animate-in slide-in-from-right-4 duration-500">
             {depts.map(d => (
-                <button key={d} onClick={() => setNavState({...navState, department: d})} className="bg-white p-6 rounded-xl shadow border border-slate-200 hover:border-blue-500 hover:shadow-lg transition-all text-left">
-                    <div className="text-2xl font-black text-slate-800 mb-1">{d}</div>
-                    <div className="text-xs text-slate-500 font-bold uppercase tracking-wider">{language === 'en' ? 'Department' : (language === 'te' ? 'విభాగం' : 'विभाग')}</div>
+                <button key={d} onClick={() => setNavState({...navState, department: d})} className="bg-white p-4 rounded-xl shadow border border-slate-200 hover:border-blue-500 hover:shadow-lg transition-all text-left">
+                    <div className="text-xl font-black text-slate-800 mb-0.5">{d}</div>
+                    <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{language === 'en' ? 'Department' : (language === 'te' ? 'విభాగం' : 'विभाग')}</div>
                 </button>
             ))}
         </div>
@@ -326,21 +326,21 @@ const Directions: React.FC = () => {
 
   // 6. Generic List Render (For Admin or Specific Dept Rooms)
   const renderLocationList = (locations: LocationData[]) => (
-    <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200 overflow-hidden animate-in slide-in-from-bottom-8 max-h-[60vh] overflow-y-auto">
+    <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-slate-200 overflow-hidden animate-in slide-in-from-bottom-8 max-h-[50vh] overflow-y-auto custom-scrollbar">
       {locations.map(loc => (
         <button
           key={loc.id}
           onClick={() => handleSelectLocation(loc)}
-          className="w-full text-left p-5 hover:bg-blue-50 border-b border-slate-100 last:border-0 flex items-center justify-between group transition-colors"
+          className="w-full text-left p-3 hover:bg-blue-50 border-b border-slate-100 last:border-0 flex items-center justify-between group transition-colors"
         >
            <div>
-              <div className="font-bold text-lg text-slate-800">{loc.name}</div>
-              <div className="text-sm text-slate-500 flex items-center gap-2">
-                  <span className="bg-slate-100 px-2 py-0.5 rounded text-xs font-bold">{loc.floor}</span>
+              <div className="font-bold text-base text-slate-800">{loc.name}</div>
+              <div className="text-xs text-slate-500 flex items-center gap-2">
+                  <span className="bg-slate-100 px-1.5 py-0.5 rounded text-[10px] font-bold">{loc.floor}</span>
                   {loc.department && <span>{loc.department}</span>}
               </div>
            </div>
-           <ChevronRight size={24} className="text-slate-300 group-hover:text-blue-600" />
+           <ChevronRight size={18} className="text-slate-300 group-hover:text-blue-600" />
         </button>
       ))}
     </div>
@@ -407,55 +407,55 @@ const Directions: React.FC = () => {
           <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-[2px]"></div>
       </div>
 
-      <div className="relative z-10 h-full flex flex-col gap-4 p-4">
+      <div className="relative z-10 h-full flex flex-col gap-3 p-3">
         <div className="flex-none flex justify-between items-center">
             <button 
                 onClick={handleBack} 
-                className="flex items-center gap-2 bg-white/90 backdrop-blur text-slate-900 px-5 py-2.5 rounded-xl shadow-lg border-white/20 hover:bg-white font-bold transition-all group"
+                className="flex items-center gap-2 bg-white/90 backdrop-blur text-slate-900 px-3 py-1.5 rounded-xl shadow-lg border-white/20 hover:bg-white font-bold transition-all group text-xs"
             >
-                <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+                <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
                 {t.dir_back}
             </button>
         </div>
 
         {!selectedRoute && (
-            <div ref={searchContainerRef} className="w-full max-w-3xl mx-auto relative z-20">
-                <div className="relative flex gap-2 shadow-2xl rounded-2xl">
+            <div ref={searchContainerRef} className="w-full max-w-2xl mx-auto relative z-20 flex-none">
+                <div className="relative flex gap-2 shadow-xl rounded-2xl">
                     <div className="relative flex-1">
-                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={24} />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                         <input
                             type="text"
                             value={query}
                             onFocus={() => setShowDropdown(true)}
                             onChange={(e) => handleSearch(e.target.value)}
                             placeholder={t.dir_search_placeholder}
-                            className="w-full pl-16 pr-4 py-5 bg-white text-slate-900 rounded-2xl focus:ring-4 focus:ring-blue-500/50 focus:outline-none text-xl font-medium shadow-inner transition-colors"
+                            className="w-full pl-12 pr-4 py-3 bg-white text-slate-900 rounded-2xl focus:ring-4 focus:ring-blue-500/50 focus:outline-none text-lg font-medium shadow-inner transition-colors"
                         />
                     </div>
                     <button
                         onClick={() => setShowVoiceModal(true)}
-                        className="px-6 rounded-2xl transition-colors flex items-center justify-center bg-blue-600 text-white hover:bg-blue-700"
+                        className="px-4 rounded-2xl transition-colors flex items-center justify-center bg-blue-600 text-white hover:bg-blue-700"
                     >
-                        <Mic size={28} />
+                        <Mic size={20} />
                     </button>
                 </div>
                 
                 {query.trim() !== '' && showDropdown && (
-                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[60vh] overflow-y-auto border border-slate-200">
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[50vh] overflow-y-auto border border-slate-200">
                         {searchResults.length === 0 ? (
-                            <div className="p-6 text-center text-slate-500">No matches found.</div>
+                            <div className="p-4 text-center text-slate-500 text-sm">No matches found.</div>
                         ) : (
                             searchResults.map(loc => (
                                 <button
                                     key={loc.id}
                                     onClick={() => handleSelectLocation(loc)}
-                                    className="w-full text-left p-4 hover:bg-slate-50 border-b border-slate-100 last:border-0 flex justify-between items-center group"
+                                    className="w-full text-left p-3 hover:bg-slate-50 border-b border-slate-100 last:border-0 flex justify-between items-center group"
                                 >
                                     <div>
-                                        <div className="font-bold text-lg text-slate-800">{loc.name}</div>
-                                        <div className="text-sm text-slate-500">{loc.block} • {loc.floor}</div>
+                                        <div className="font-bold text-base text-slate-800">{loc.name}</div>
+                                        <div className="text-xs text-slate-500">{loc.block} • {loc.floor}</div>
                                     </div>
-                                    <ArrowRight size={20} className="text-slate-300 group-hover:text-blue-600"/>
+                                    <ArrowRight size={16} className="text-slate-300 group-hover:text-blue-600"/>
                                 </button>
                             ))
                         )}
@@ -464,20 +464,20 @@ const Directions: React.FC = () => {
             </div>
         )}
 
-        <div className={`flex-1 min-h-0 flex justify-center ${selectedRoute ? 'items-stretch pb-2' : 'items-start pt-8 pb-20'} overflow-y-auto`}>
+        <div className={`flex-1 min-h-0 flex justify-center ${selectedRoute ? 'items-stretch pb-0' : 'items-start pt-2 pb-0'} overflow-y-auto custom-scrollbar`}>
             {selectedRoute ? (
                 // --- FULL SCREEN ROUTE DETAILS ---
-                <div className="w-full h-full max-w-6xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
-                    <div className="bg-slate-50 border-b border-slate-200 p-4 md:p-5 flex justify-between items-center flex-none">
+                <div className="w-full h-full max-w-6xl mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-300 border border-slate-200">
+                    <div className="bg-slate-50 border-b border-slate-200 p-3 flex justify-between items-center flex-none">
                         <div>
-                            <div className="text-blue-600 font-bold uppercase tracking-wider text-xs mb-1 flex items-center gap-1">
-                                <Navigation size={14}/> Route Active
+                            <div className="text-blue-600 font-bold uppercase tracking-wider text-[10px] mb-0.5 flex items-center gap-1">
+                                <Navigation size={12}/> Route Active
                             </div>
-                            <h2 className="text-3xl font-black text-slate-900">{selectedRoute.name}</h2>
-                            <p className="text-slate-500 font-medium">{selectedRoute.block}, {selectedRoute.floor}</p>
+                            <h2 className="text-xl font-black text-slate-900 leading-tight">{selectedRoute.name}</h2>
+                            <p className="text-slate-500 font-medium text-xs">{selectedRoute.block}, {selectedRoute.floor}</p>
                         </div>
-                        <button onClick={clearRoute} className="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition-colors">
-                            <RotateCcw size={18} /> New Search
+                        <button onClick={clearRoute} className="bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-lg font-bold flex items-center gap-2 transition-colors text-xs">
+                            <RotateCcw size={14} /> New Search
                         </button>
                     </div>
 
@@ -488,67 +488,67 @@ const Directions: React.FC = () => {
                                     <img src={selectedRoute.mapImage} className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-700" alt="Map" />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-slate-500">
-                                        <MapPin size={48} className="opacity-20"/>
+                                        <MapPin size={32} className="opacity-20"/>
                                     </div>
                                 )}
                                 {/* Floating Read Button */}
                                 <button 
                                     onClick={readDirections}
-                                    className="absolute bottom-4 right-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 font-bold transition-transform hover:scale-105 z-20"
+                                    className="absolute bottom-3 right-3 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2 font-bold transition-transform hover:scale-105 z-20 text-xs"
                                 >
-                                    <Volume2 size={18} /> Read Directions
+                                    <Volume2 size={14} /> Read Directions
                                 </button>
                             </div>
                             
-                            <div className="h-auto p-4 border-t border-slate-200 bg-white grid grid-cols-2 gap-4 flex-none z-10">
-                                <div className="bg-blue-50 p-3 rounded-xl border border-blue-100">
-                                    <div className="text-blue-600 text-xs font-bold uppercase mb-1 flex items-center gap-1"><Footprints size={14}/> Distance</div>
-                                    <div className="text-2xl font-black text-slate-900">{selectedRoute.distance} m</div>
+                            <div className="h-auto p-3 border-t border-slate-200 bg-white grid grid-cols-2 gap-3 flex-none z-10">
+                                <div className="bg-blue-50 p-2 rounded-lg border border-blue-100">
+                                    <div className="text-blue-600 text-[10px] font-bold uppercase mb-0.5 flex items-center gap-1"><Footprints size={12}/> Distance</div>
+                                    <div className="text-lg font-black text-slate-900">{selectedRoute.distance} m</div>
                                 </div>
-                                <div className="bg-emerald-50 p-3 rounded-xl border border-emerald-100">
-                                    <div className="text-emerald-600 text-xs font-bold uppercase mb-1 flex items-center gap-1"><Clock size={14}/> Est. Time</div>
-                                    <div className="text-2xl font-black text-slate-900">{selectedRoute.estimatedTime} min</div>
+                                <div className="bg-emerald-50 p-2 rounded-lg border border-emerald-100">
+                                    <div className="text-emerald-600 text-[10px] font-bold uppercase mb-0.5 flex items-center gap-1"><Clock size={12}/> Est. Time</div>
+                                    <div className="text-lg font-black text-slate-900">{selectedRoute.estimatedTime} min</div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="w-full md:w-96 bg-slate-50/50 border-l border-slate-200 flex flex-col h-full min-h-0">
-                            <div className="flex-1 p-5 overflow-y-auto">
-                                <h3 className="font-bold text-lg mb-4 text-slate-800 flex items-center gap-2">
-                                    <Footprints size={18} className="text-slate-400"/> Directions
+                        <div className="w-full md:w-80 bg-slate-50/50 border-l border-slate-200 flex flex-col h-full min-h-0">
+                            <div className="flex-1 p-3 overflow-y-auto custom-scrollbar">
+                                <h3 className="font-bold text-sm mb-3 text-slate-800 flex items-center gap-2">
+                                    <Footprints size={14} className="text-slate-400"/> Directions
                                 </h3>
-                                <div className="space-y-6 relative before:absolute before:left-[15px] before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-300">
+                                <div className="space-y-4 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-300">
                                     {selectedRoute.steps.map((step, idx) => (
-                                        <div key={idx} className="relative flex gap-4">
-                                            <div className="relative z-10 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-md ring-4 ring-slate-50">
+                                        <div key={idx} className="relative flex gap-3">
+                                            <div className="relative z-10 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[10px] shadow-md ring-2 ring-slate-50 flex-shrink-0">
                                                 {idx + 1}
                                             </div>
-                                            <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex-1">
-                                                <p className="font-bold text-slate-900 text-lg leading-tight">{step.instruction}</p>
-                                                {step.detail && <p className="text-sm text-slate-500 mt-2 leading-relaxed">{step.detail}</p>}
+                                            <div className="bg-white p-3 rounded-lg shadow-sm border border-slate-200 flex-1">
+                                                <p className="font-bold text-slate-900 text-sm leading-tight">{step.instruction}</p>
+                                                {step.detail && <p className="text-xs text-slate-500 mt-1 leading-relaxed">{step.detail}</p>}
                                             </div>
                                         </div>
                                     ))}
-                                    <div className="relative flex gap-4">
-                                        <div className="relative z-10 w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center font-bold text-sm shadow-md ring-4 ring-slate-50">
-                                            <MapPin size={16} fill="currentColor"/>
+                                    <div className="relative flex gap-3">
+                                        <div className="relative z-10 w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center font-bold text-[10px] shadow-md ring-2 ring-slate-50 flex-shrink-0">
+                                            <MapPin size={12} fill="currentColor"/>
                                         </div>
-                                        <div className="py-1">
-                                            <p className="font-bold text-green-700">You have arrived</p>
+                                        <div className="py-0.5">
+                                            <p className="font-bold text-green-700 text-xs">You have arrived</p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex-none p-5 border-t border-slate-200 bg-white shadow-lg z-20">
-                                <div className="bg-slate-900 text-white p-4 rounded-xl flex items-center gap-4 shadow-lg">
-                                    <div className="bg-white p-1.5 rounded-lg flex-shrink-0">
-                                        <QRCodeSVG value={`${window.location.href.split('#')[0]}#/mobile/directions?id=${selectedRoute.id}`} size={80} />
+                            <div className="flex-none p-3 border-t border-slate-200 bg-white shadow-lg z-20">
+                                <div className="bg-slate-900 text-white p-3 rounded-xl flex items-center gap-3 shadow-lg">
+                                    <div className="bg-white p-1 rounded-lg flex-shrink-0">
+                                        <QRCodeSVG value={`${window.location.href.split('#')[0]}#/mobile/directions?id=${selectedRoute.id}`} size={60} />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="font-bold text-base text-yellow-400">Scan to Go</p>
-                                        <p className="text-xs text-slate-300 leading-tight mt-1 mb-2">Get navigation on phone</p>
-                                        <div className="bg-black/30 p-2 rounded border border-white/10">
-                                            <p className="text-[10px] text-slate-400 font-mono break-all leading-none">
+                                        <p className="font-bold text-sm text-yellow-400">Scan to Go</p>
+                                        <p className="text-[10px] text-slate-300 leading-tight mt-0.5 mb-1">Get navigation on phone</p>
+                                        <div className="bg-black/30 p-1.5 rounded border border-white/10">
+                                            <p className="text-[8px] text-slate-400 font-mono break-all leading-none truncate">
                                                 {`${window.location.href.split('#')[0]}#/mobile/directions?id=${selectedRoute.id}`}
                                             </p>
                                         </div>
@@ -560,61 +560,61 @@ const Directions: React.FC = () => {
                 </div>
             ) : (
                 // --- BROWSER NAVIGATION LOGIC ---
-                <div className="w-full max-w-5xl mx-auto">
+                <div className="w-full max-w-5xl mx-auto flex flex-col gap-4">
                     {(navState.block) && renderBreadcrumbs()}
 
                     {/* 1. BLOCK SELECTION */}
                     {!navState.block && (
-                        <div className="animate-in fade-in zoom-in duration-300">
-                             <h2 className="text-white text-3xl font-bold mb-8 text-center drop-shadow-md">{t.dir_select_block}</h2>
+                        <div className="animate-in fade-in zoom-in duration-300 w-full">
+                             <h2 className="text-white text-2xl font-bold mb-4 text-center drop-shadow-md">{t.dir_select_block}</h2>
                              {renderBlockSelection()}
                         </div>
                     )}
 
                     {/* 2. CAMPUS FACILITIES (Sub-menu) */}
                     {navState.block === 'Campus Facilities' && (
-                        <div className="animate-in fade-in slide-in-from-right duration-300">
-                            <h2 className="text-white text-3xl font-bold mb-8 text-center drop-shadow-md">{t.dir_select_amenity}</h2>
+                        <div className="animate-in fade-in slide-in-from-right duration-300 w-full">
+                            <h2 className="text-white text-2xl font-bold mb-4 text-center drop-shadow-md">{t.dir_select_amenity}</h2>
                             {renderFacilitiesSelection()}
                         </div>
                     )}
 
                     {/* 3. MAIN BLOCK - SECTIONS (Admin, Academic, Amenities) */}
                     {navState.block === 'Main Block' && !navState.mainBlockSection && (
-                        <div className="animate-in fade-in slide-in-from-right duration-300">
-                             <h2 className="text-white text-3xl font-bold mb-8 text-center drop-shadow-md">{t.dir_what_looking}</h2>
+                        <div className="animate-in fade-in slide-in-from-right duration-300 w-full">
+                             <h2 className="text-white text-2xl font-bold mb-4 text-center drop-shadow-md">{t.dir_what_looking}</h2>
                              {renderMainBlockSectionSelection()}
                         </div>
                     )}
 
                     {/* 4. MAIN BLOCK - ADMIN LIST */}
                     {navState.block === 'Main Block' && navState.mainBlockSection === 'administrative' && (
-                        <div className="animate-in fade-in slide-in-from-right duration-300">
-                            <h2 className="text-white text-3xl font-bold mb-8 text-center drop-shadow-md">{t.dir_admin_offices}</h2>
+                        <div className="animate-in fade-in slide-in-from-right duration-300 w-full">
+                            <h2 className="text-white text-2xl font-bold mb-4 text-center drop-shadow-md">{t.dir_admin_offices}</h2>
                             {renderLocationList(getAdminLocations())}
                         </div>
                     )}
 
                     {/* 5. MAIN BLOCK - ACADEMIC - DEPARTMENT SELECTION */}
                     {navState.block === 'Main Block' && navState.academicProgram && !navState.department && (
-                        <div className="animate-in fade-in slide-in-from-right duration-300">
-                            <h2 className="text-white text-3xl font-bold mb-8 text-center drop-shadow-md">{t.dir_select_dept}</h2>
+                        <div className="animate-in fade-in slide-in-from-right duration-300 w-full">
+                            <h2 className="text-white text-2xl font-bold mb-4 text-center drop-shadow-md">{t.dir_select_dept}</h2>
                             {renderDepartmentList()}
                         </div>
                     )}
 
                     {/* 7. MAIN BLOCK - ACADEMIC - DEPARTMENT FACILITIES LIST */}
                     {navState.block === 'Main Block' && navState.department && (
-                        <div className="animate-in fade-in slide-in-from-right duration-300">
-                            <h2 className="text-white text-3xl font-bold mb-8 text-center drop-shadow-md">{navState.department} Facilities</h2>
+                        <div className="animate-in fade-in slide-in-from-right duration-300 w-full">
+                            <h2 className="text-white text-2xl font-bold mb-4 text-center drop-shadow-md">{navState.department} Facilities</h2>
                             {renderLocationList(getLocationsForDept(navState.department, navState.academicProgram!))}
                         </div>
                     )}
 
                     {/* 8. MAIN BLOCK - AMENITIES LIST */}
                     {navState.block === 'Main Block' && navState.mainBlockSection === 'amenities' && (
-                        <div className="animate-in fade-in slide-in-from-right duration-300">
-                            <h2 className="text-white text-3xl font-bold mb-8 text-center drop-shadow-md">{t.dir_common_utils}</h2>
+                        <div className="animate-in fade-in slide-in-from-right duration-300 w-full">
+                            <h2 className="text-white text-2xl font-bold mb-4 text-center drop-shadow-md">{t.dir_common_utils}</h2>
                             {renderLocationList(getMainBlockAmenities())}
                         </div>
                     )}
