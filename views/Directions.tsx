@@ -40,6 +40,9 @@ const Directions: React.FC = () => {
   // Final Selection
   const [selectedRoute, setSelectedRoute] = useState<LocationData | null>(null);
 
+  // Department Search State
+  const [deptSearchQuery, setDeptSearchQuery] = useState('');
+
   // --- Voice Announcements for State Changes ---
   useEffect(() => {
      if (selectedRoute) {
@@ -157,6 +160,7 @@ const Directions: React.FC = () => {
     setQuery('');
     setSearchResults([]);
     setShowDropdown(false);
+    setDeptSearchQuery('');
   };
 
   const handleBack = () => {
@@ -175,6 +179,7 @@ const Directions: React.FC = () => {
     if (navState.academicProgram) {
       // Since we auto-select B.Tech for Academic, going back should take us to Section Selection
       setNavState(prev => ({ ...prev, academicProgram: undefined, mainBlockSection: undefined }));
+      setDeptSearchQuery('');
       return;
     }
 
@@ -312,14 +317,45 @@ const Directions: React.FC = () => {
   const renderDepartmentList = () => {
     // Default to B.Tech departments since we removed the selection
     const depts = getBTechDepartments();
+    
+    // Fuzzy Search Logic
+    let filteredDepts = depts;
+    if (deptSearchQuery.trim() !== '') {
+        const fuse = new Fuse(depts.map(d => ({ name: d })), {
+            keys: ['name'],
+            threshold: 0.4, // Adjust for fuzziness
+        });
+        filteredDepts = fuse.search(deptSearchQuery).map(result => result.item.name);
+    }
+
     return (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 animate-in slide-in-from-right-4 duration-500">
-            {depts.map(d => (
-                <button key={d} onClick={() => setNavState({...navState, department: d})} className="bg-white p-4 rounded-xl shadow border border-slate-200 hover:border-blue-500 hover:shadow-lg transition-all text-left">
-                    <div className="text-xl font-black text-slate-800 mb-0.5">{d}</div>
-                    <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{language === 'en' ? 'Department' : (language === 'te' ? 'విభాగం' : 'विभाग')}</div>
-                </button>
-            ))}
+        <div className="w-full max-w-4xl mx-auto">
+            {/* Search Input */}
+            <div className="relative mb-6">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                <input
+                    type="text"
+                    value={deptSearchQuery}
+                    onChange={(e) => setDeptSearchQuery(e.target.value)}
+                    placeholder={t.dir_search_dept}
+                    className="w-full pl-12 pr-4 py-3 bg-white text-slate-900 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                />
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 animate-in slide-in-from-right-4 duration-500">
+                {filteredDepts.map(d => (
+                    <button key={d} onClick={() => setNavState({...navState, department: d})} className="bg-white p-4 rounded-xl shadow border border-slate-200 hover:border-blue-500 hover:shadow-lg transition-all text-left">
+                        <div className="text-xl font-black text-slate-800 mb-0.5">{d}</div>
+                        <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">{language === 'en' ? 'Department' : (language === 'te' ? 'విభాగం' : 'विभाग')}</div>
+                    </button>
+                ))}
+            </div>
+            
+            {filteredDepts.length === 0 && (
+                <div className="text-center text-white py-8 bg-white/10 rounded-xl backdrop-blur-sm border border-white/20">
+                    <p>No departments found matching "{deptSearchQuery}"</p>
+                </div>
+            )}
         </div>
     );
   };

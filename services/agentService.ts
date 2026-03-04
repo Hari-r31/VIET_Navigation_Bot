@@ -26,7 +26,9 @@ const RESPONSE_TEMPLATES = {
     didnt_catch_course: "I didn't catch that. Please say B.Tech, MBA, or Diploma.",
     didnt_catch_branch: "Could you specify the branch? (CSE, ECE, EEE, MECH)",
     nav_specific_fail: (text: string) => `I couldn't find "${text}" in this section. Try saying the exact name (e.g., 'CSE' or 'Library') or say 'Restart'.`,
-    excelent_choice: (name: string) => `Excellent choice. Navigating to ${name}.`
+    excelent_choice: (name: string) => `Excellent choice. Navigating to ${name}.`,
+    did_you_mean: (options: string) => `I couldn't find that exactly, but did you mean one of these?`,
+    nav_not_found_try_these: (options: string) => `I couldn't find that location. However, I found these similar places: ${options}. Would you like to go to one of them?`
   },
   te: {
     greeting: "నమస్కారం! 👋 నేను మీకు లొకేషన్లు లేదా ఫీజు వివరాలు తెలుసుకోవడంలో సహాయపడగలను. 'లైబ్రరీ ఎక్కడ ఉంది?' లేదా 'B.Tech ఫీజులు చూపించు' అని అడగండి.",
@@ -48,7 +50,9 @@ const RESPONSE_TEMPLATES = {
     didnt_catch_course: "నాకు అది అర్థం కాలేదు. దయచేసి B.Tech, MBA లేదా Diploma చెప్పండి.",
     didnt_catch_branch: "మీరు బ్రాంచ్ చెప్పగలరా? (CSE, ECE, EEE, MECH)",
     nav_specific_fail: (text: string) => `ఈ విభాగంలో "${text}" దొరకలేదు. ఖచ్చితమైన పేరు (ఉదా., 'CSE' లేదా 'లైబ్రరీ') చెప్పండి లేదా 'Restart' చెప్పండి.`,
-    excelent_choice: (name: string) => `మంచి ఎంపిక. ${name}కి నావిగేట్ చేస్తున్నాను.`
+    excelent_choice: (name: string) => `మంచి ఎంపిక. ${name}కి నావిగేట్ చేస్తున్నాను.`,
+    did_you_mean: (options: string) => `నాకు అది ఖచ్చితంగా దొరకలేదు, కానీ మీరు వీటిలో ఒకదానిని ఉద్దేశించారా?`,
+    nav_not_found_try_these: (options: string) => `ఆ లొకేషన్ దొరకలేదు. అయితే, నాకు ఈ ప్రదేశాలు దొరికాయి: ${options}. మీరు వీటిలో ఒకదానికి వెళ్లాలనుకుంటున్నారా?`
   },
   hi: {
     greeting: "नमस्ते! 👋 मैं आपको स्थान खोजने या शुल्क विवरण की जांच करने में मदद कर सकता हूं। 'लाइब्रेरी कहां है?' या 'B.Tech फीस दिखाएं' पूछने का प्रयास करें।",
@@ -70,7 +74,9 @@ const RESPONSE_TEMPLATES = {
     didnt_catch_course: "मैंने वह नहीं पकड़ा। कृपया B.Tech, MBA, या Diploma कहें।",
     didnt_catch_branch: "क्या आप ब्रांच निर्दिष्ट कर सकते हैं? (CSE, ECE, EEE, MECH)",
     nav_specific_fail: (text: string) => `मुझे इस अनुभाग में "${text}" नहीं मिला। सटीक नाम (जैसे, 'CSE' या 'लाइब्रेरी') कहने का प्रयास करें या 'Restart' कहें।`,
-    excelent_choice: (name: string) => `उत्कृष्ट पसंद। ${name} पर नेविगेट कर रहा हूँ।`
+    excelent_choice: (name: string) => `उत्कृष्ट पसंद। ${name} पर नेविगेट कर रहा हूँ।`,
+    did_you_mean: (options: string) => `मुझे वह बिल्कुल नहीं मिला, लेकिन क्या आपका मतलब इनमें से कोई था?`,
+    nav_not_found_try_these: (options: string) => `मुझे वह स्थान नहीं मिला। हालाँकि, मुझे ये समान स्थान मिले: ${options}। क्या आप उनमें से किसी एक पर जाना चाहेंगे?`
   }
 };
 
@@ -80,7 +86,7 @@ const NAV_KEYWORDS = ['where', 'go', 'find', 'navigate', 'direction', 'route', '
 const FEE_KEYWORDS = ['fee', 'cost', 'price', 'tuition', 'money', 'pay', 'seat', 'shulk', 'kharcha', 'fees'];
 
 // --- Helper: Intent Detection ---
-const detectIntent = (text: string): IntentType => {
+const detectIntent = (text: string, context: AgentContext): IntentType => {
   const lower = text.toLowerCase();
   
   if (lower === 'clear' || lower === 'reset' || lower === 'restart') return IntentType.CLEAR;
@@ -97,6 +103,10 @@ const detectIntent = (text: string): IntentType => {
   // Navigation is the fallback if keywords match OR if it looks like a location search
   if (NAV_KEYWORDS.some(k => lower.includes(k))) return IntentType.NAVIGATE;
   
+  // Context-aware fallback: If previous intent was NAVIGATE or FEE, assume continuation
+  if (context.lastIntent === IntentType.NAVIGATE) return IntentType.NAVIGATE;
+  if (context.lastIntent === IntentType.FEE) return IntentType.FEE;
+
   return IntentType.UNKNOWN;
 };
 
@@ -109,6 +119,7 @@ const extractFeeEntities = (text: string) => {
   if (lower.includes('b.tech') || lower.includes('btech')) course = 'B.Tech';
   else if (lower.includes('mba')) course = 'MBA';
   else if (lower.includes('diploma') || lower.includes('polytechnic')) course = 'Diploma';
+  else if (lower.includes('m.tech') || lower.includes('mtech')) course = 'M.Tech';
 
   // Detect Branch
   let branch: string | undefined;
@@ -117,6 +128,13 @@ const extractFeeEntities = (text: string) => {
   else if (lower.includes('eee') || lower.includes('electrical')) branch = 'EEE';
   else if (lower.includes('mech')) branch = 'MECH';
   else if (lower.includes('civil')) branch = 'CIVIL';
+  else if (lower.includes('it') || lower.includes('information')) branch = 'IT';
+  else if (lower.includes('cme')) branch = 'CME';
+  else if (lower.includes('vlsi')) branch = 'VLSI';
+  else if (lower.includes('cad') || lower.includes('cam')) branch = 'CAD / CAM';
+  else if (lower.includes('power') || lower.includes('eps')) branch = 'POWER SYSTEMS';
+  else if (lower.includes('structural') || lower.includes('se')) branch = 'STRUCTURAL ENGINEERING';
+  else if (lower.includes('thermal') || lower.includes('te')) branch = 'THERMAL ENGINEERING';
 
   return { course, branch };
 };
@@ -127,7 +145,7 @@ export const processUserMessage = (
   context: AgentContext,
   lang: 'en' | 'te' | 'hi' = 'en'
 ): AgentResponse => {
-  const intent = detectIntent(text);
+  const intent = detectIntent(text, context);
   const lowerText = text.toLowerCase();
   const t = RESPONSE_TEMPLATES[lang];
   
@@ -146,7 +164,8 @@ export const processUserMessage = (
        return {
          message: t.didnt_catch_course,
          action: { type: 'NONE' },
-         updatedContext: context
+         updatedContext: context,
+         options: ['B.Tech', 'MBA', 'Diploma', 'M.Tech']
        };
     }
     
@@ -158,7 +177,8 @@ export const processUserMessage = (
        return {
          message: t.didnt_catch_branch,
          action: { type: 'NONE' },
-         updatedContext: context
+         updatedContext: context,
+         options: ['CSE', 'ECE', 'EEE', 'MECH', 'CIVIL']
        };
     }
 
@@ -174,7 +194,8 @@ export const processUserMessage = (
                      awaitingClarification: true,
                      clarificationType: 'NAV_SPECIFIC_SELECT',
                      categoryFilter: 'administrative'
-                 }
+                 },
+                 options: ['Principal Office', 'Admin Office', 'Exam Cell']
              };
         } 
         // Academic Mapping
@@ -187,7 +208,8 @@ export const processUserMessage = (
                      awaitingClarification: true,
                      clarificationType: 'NAV_SPECIFIC_SELECT',
                      categoryFilter: 'academic'
-                 }
+                 },
+                 options: ['CSE', 'ECE', 'EEE', 'MECH', 'CIVIL']
              };
         } 
         // Amenities Mapping
@@ -200,7 +222,8 @@ export const processUserMessage = (
                      awaitingClarification: true,
                      clarificationType: 'NAV_SPECIFIC_SELECT',
                      categoryFilter: 'amenity'
-                 }
+                 },
+                 options: ['Library', 'Canteen', 'Seminar Hall']
              };
         }
         
@@ -210,14 +233,15 @@ export const processUserMessage = (
             return {
                 message: t.nav_found(matches[0].name),
                 action: { type: 'NAVIGATE', payload: { initialQuery: matches[0].name } },
-                updatedContext: {} 
+                updatedContext: { ...context, lastIntent: IntentType.NAVIGATE } 
             };
         }
 
         return {
             message: t.clarify_fail,
             action: { type: 'NONE' },
-            updatedContext: context
+            updatedContext: context,
+            options: ['Administrative', 'Academic', 'Amenities']
         };
     }
 
@@ -238,7 +262,7 @@ export const processUserMessage = (
             return {
                 message: t.excelent_choice(matches[0].name),
                 action: { type: 'NAVIGATE', payload: { initialQuery: matches[0].name } },
-                updatedContext: {} // Reset context
+                updatedContext: { ...context, lastIntent: IntentType.NAVIGATE }
             };
         } else {
              // Handle Department nicknames manually
@@ -253,7 +277,7 @@ export const processUserMessage = (
                     return {
                         message: t.excelent_choice(matches[0].name),
                         action: { type: 'NAVIGATE', payload: { initialQuery: matches[0].name } },
-                        updatedContext: {} 
+                        updatedContext: { ...context, lastIntent: IntentType.NAVIGATE }
                     };
                 }
              }
@@ -271,13 +295,13 @@ export const processUserMessage = (
              return {
                 message: t.nav_found(context.potentialLocation?.name || ''),
                 action: { type: 'NAVIGATE', payload: { initialQuery: context.potentialLocation?.name } },
-                updatedContext: {} // Reset
+                updatedContext: { ...context, lastIntent: IntentType.NAVIGATE }
              };
         } else {
             return {
                 message: t.cancelled,
                 action: { type: 'NONE' },
-                updatedContext: {}
+                updatedContext: { ...context, lastIntent: IntentType.NAVIGATE }
             };
         }
     }
@@ -288,13 +312,13 @@ export const processUserMessage = (
              return {
                 message: t.nav_found(matches[0].name),
                 action: { type: 'NAVIGATE', payload: { initialQuery: matches[0].name } },
-                updatedContext: {} 
+                updatedContext: { ...context, lastIntent: IntentType.NAVIGATE }
              };
         } else {
              return {
                  message: t.still_trouble,
                  action: { type: 'NONE' },
-                 updatedContext: {}
+                 updatedContext: { ...context, lastIntent: IntentType.NAVIGATE }
              };
         }
     }
@@ -306,7 +330,7 @@ export const processUserMessage = (
       return {
         message: t.greeting,
         action: { type: 'NONE' },
-        updatedContext: context
+        updatedContext: { ...context, lastIntent: IntentType.GREETING }
       };
 
     case IntentType.CLEAR:
@@ -318,7 +342,7 @@ export const processUserMessage = (
 
     case IntentType.FEE:
       const entities = extractFeeEntities(text);
-      return handleFeeFlow(entities, context, t);
+      return handleFeeFlow(entities, { ...context, lastIntent: IntentType.FEE }, t);
 
     case IntentType.FAQ:
       const faq = FAQS.find(f => 
@@ -329,7 +353,7 @@ export const processUserMessage = (
         return {
           message: faq.answer,
           action: { type: 'NONE' },
-          updatedContext: context
+          updatedContext: { ...context, lastIntent: IntentType.FAQ }
         };
       }
       return {
@@ -351,40 +375,49 @@ export const processUserMessage = (
               updatedContext: {
                   ...context,
                   awaitingClarification: true,
-                  clarificationType: 'NAV_CATEGORY'
-              }
+                  clarificationType: 'NAV_CATEGORY',
+                  lastIntent: IntentType.NAVIGATE
+              },
+              options: ['Administrative', 'Academic', 'Amenities']
           };
       }
 
       const matches = searchLocations(cleanQuery, localLocations);
       
       if (matches.length > 0) {
-        // AMBIGUITY CHECK:
-        if (matches.length > 1 && cleanQuery.length < 5) {
-             const options = matches.slice(0, 3).map(m => m.name).join(", or ");
+        const topMatch = matches[0];
+        
+        // Exact or High Confidence Match
+        const isStrongMatch = topMatch.name.toLowerCase().includes(cleanQuery.toLowerCase()) || 
+                              cleanQuery.toLowerCase().includes(topMatch.name.toLowerCase());
+
+        if (isStrongMatch || matches.length === 1) {
              return {
-                 message: t.disambiguate(options),
+                message: t.nav_found(topMatch.name),
+                action: { type: 'NAVIGATE', payload: { initialQuery: topMatch.name } },
+                updatedContext: { ...context, lastIntent: IntentType.NAVIGATE }
+             };
+        } else {
+             // Ambiguous or Fuzzy Match
+             // Present top 3 options
+             const options = matches.slice(0, 3).map(m => m.name);
+             return {
+                 message: t.did_you_mean(options.join(", ")),
                  action: { type: 'NONE' },
                  updatedContext: {
                      ...context,
                      awaitingClarification: true,
-                     clarificationType: 'LOCATION_DISAMBIGUATE'
-                 }
+                     clarificationType: 'LOCATION_DISAMBIGUATE',
+                     lastIntent: IntentType.NAVIGATE
+                 },
+                 options: options
              };
         }
-
-        const topMatch = matches[0];
-        
-        return {
-           message: t.nav_found(topMatch.name),
-           action: { type: 'NAVIGATE', payload: { initialQuery: topMatch.name } },
-           updatedContext: {}
-        };
       } else {
         return {
           message: t.nav_not_found,
           action: { type: 'NONE' },
-          updatedContext: context
+          updatedContext: { ...context, lastIntent: IntentType.NAVIGATE }
         };
       }
   }
@@ -408,7 +441,8 @@ function handleFeeFlow(data: { course?: string; branch?: string }, currentContex
          awaitingClarification: true,
          clarificationType: 'FEE_COURSE',
          partialFeeData: data
-       }
+       },
+       options: ['B.Tech', 'MBA', 'Diploma', 'M.Tech']
      };
    }
 
@@ -422,7 +456,8 @@ function handleFeeFlow(data: { course?: string; branch?: string }, currentContex
          awaitingClarification: true,
          clarificationType: 'FEE_BRANCH',
          partialFeeData: data
-       }
+       },
+       options: ['CSE', 'ECE', 'EEE', 'MECH', 'CIVIL']
      };
    }
 
@@ -433,6 +468,6 @@ function handleFeeFlow(data: { course?: string; branch?: string }, currentContex
          type: 'SHOW_FEES',
          payload: { initialCourse: data.course, initialBranch: data.branch }
      },
-     updatedContext: {}
+     updatedContext: { ...currentContext, lastIntent: IntentType.FEE }
    };
 }

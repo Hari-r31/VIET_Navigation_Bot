@@ -30,6 +30,7 @@ export const translations = {
     dir_what_looking: "What are you looking for?",
     dir_select_program: "Select Program",
     dir_select_dept: "Select Department",
+    dir_search_dept: "Search Departments",
     dir_admin_offices: "Administrative Offices",
     dir_common_utils: "Common Utilities",
     
@@ -111,6 +112,7 @@ export const translations = {
     dir_what_looking: "మీరు దేని కోసం వెతుకుతున్నారు?",
     dir_select_program: "కోర్సు ఎంచుకోండి",
     dir_select_dept: "విభాగాన్ని ఎంచుకోండి",
+    dir_search_dept: "విభాగాలను వెతకండి",
     dir_admin_offices: "అడ్మినిస్ట్రేటివ్ ఆఫీసు",
     dir_common_utils: "సాధారణ సౌకర్యాలు",
     
@@ -192,6 +194,7 @@ export const translations = {
     dir_what_looking: "आप क्या ढूंढ रहे हैं?",
     dir_select_program: "प्रोग्राम चुनें",
     dir_select_dept: "विभाग चुनें",
+    dir_search_dept: "विभाग खोजें",
     dir_admin_offices: "प्रशासनिक कार्यालय",
     dir_common_utils: "सामान्य सुविधाएं",
     

@@ -7,6 +7,8 @@ const options = {
   includeScore: true,
   keys: ['name', 'aliases', 'block', 'department'],
   threshold: 0.4, // 0.0 is perfect match, 1.0 is match anything
+  ignoreLocation: true, // Search anywhere in the string
+  minMatchCharLength: 2,
 };
 
 // Default Fuse instance for English/Fallback

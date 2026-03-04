@@ -68,6 +68,7 @@ const Assistant: React.FC<AssistantProps> = ({
 
   // Initialize greeting on mount or language change
   useEffect(() => {
+    // If messages are empty, initialize
     if (messages.length === 0) {
         setMessages([
         { 
@@ -77,8 +78,13 @@ const Assistant: React.FC<AssistantProps> = ({
             timestamp: Date.now() 
         }
         ]);
+    } else {
+        // If messages exist, update the welcome message (id '1') to new language
+        setMessages(prev => prev.map(msg => 
+            msg.id === '1' ? { ...msg, text: t.assist_welcome } : msg
+        ));
     }
-  }, [t, messages.length]);
+  }, [t.assist_welcome, messages.length]);
 
   // Speak welcome when opened
   useEffect(() => {
@@ -186,7 +192,8 @@ const Assistant: React.FC<AssistantProps> = ({
          id: (Date.now() + 1).toString(),
          sender: 'assistant',
          text: response.message,
-         timestamp: Date.now()
+         timestamp: Date.now(),
+         options: response.options
        };
        setMessages(prev => [...prev, botMsg]);
        
@@ -292,13 +299,31 @@ const Assistant: React.FC<AssistantProps> = ({
                             {msg.sender === 'user' ? <User size={18} /> : <Bot size={20} />}
                         </div>
                         
-                        {/* Bubble */}
-                        <div className={`px-6 py-4 rounded-3xl text-lg leading-relaxed shadow-sm ${
-                            msg.sender === 'user' 
-                                ? 'bg-white text-slate-800 rounded-br-none border border-slate-100' 
-                                : 'bg-blue-600 text-white rounded-bl-none'
-                        }`}>
-                            {msg.text}
+                        {/* Content Container */}
+                        <div className={`flex flex-col gap-2 ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}>
+                            {/* Bubble */}
+                            <div className={`px-6 py-4 rounded-3xl text-lg leading-relaxed shadow-sm ${
+                                msg.sender === 'user' 
+                                    ? 'bg-white text-slate-800 rounded-br-none border border-slate-100' 
+                                    : 'bg-blue-600 text-white rounded-bl-none'
+                            }`}>
+                                {msg.text}
+                            </div>
+
+                            {/* Options Chips */}
+                            {msg.options && msg.options.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mt-1 animate-in fade-in slide-in-from-top-2 duration-300">
+                                    {msg.options.map((opt, idx) => (
+                                        <button 
+                                            key={idx}
+                                            onClick={() => handleSubmit(undefined, opt)}
+                                            className="px-4 py-2 bg-white border border-blue-200 text-blue-600 rounded-full text-sm font-medium hover:bg-blue-50 transition-colors shadow-sm"
+                                        >
+                                            {opt}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

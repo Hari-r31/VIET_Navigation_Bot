@@ -48,6 +48,7 @@ export interface ChatMessage {
   text: string;
   isTyping?: boolean;
   timestamp: number;
+  options?: string[]; // For UI chips/suggestions
 }
 
 export interface AgentContext {
@@ -59,6 +60,7 @@ export interface AgentContext {
     branch?: string;
   };
   potentialLocation?: LocationData;
+  lastIntent?: IntentType; // For multi-turn context
 }
 
 export interface AgentAction {
@@ -70,4 +72,5 @@ export interface AgentResponse {
   message: string;
   action: AgentAction;
   updatedContext: AgentContext;
+  options?: string[]; // For UI chips/suggestions
 }
