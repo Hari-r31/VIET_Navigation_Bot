@@ -2,8 +2,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Mic, X, Send, Bot, Sparkles, User, RefreshCw, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { processUserMessage } from '../services/agentService';
-import { ChatMessage, AgentContext } from '../types';
+import { sendMessageToGemini, sendToolResponseToGemini, startNewChat } from '../services/agentService';
+import { ChatMessage } from '../types';
 import VoiceSearchModal from './VoiceSearchModal';
 import { useLanguage } from '../contexts/LanguageContext';
 import { startWakeWordListener } from '../services/speechService';
@@ -35,7 +35,6 @@ const Assistant: React.FC<AssistantProps> = ({
 
   // Conversation State
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [agentContext, setAgentContext] = useState<AgentContext>({});
   const [isTyping, setIsTyping] = useState(false);
 
   // Listen for custom event to open assistant (only in modal mode or if we want to trigger it externally)
@@ -70,6 +69,7 @@ const Assistant: React.FC<AssistantProps> = ({
   useEffect(() => {
     // If messages are empty, initialize
     if (messages.length === 0) {
+        startNewChat(language); // Start a new GenAI session with current language
         setMessages([
         { 
             id: '1', 
@@ -83,8 +83,10 @@ const Assistant: React.FC<AssistantProps> = ({
         setMessages(prev => prev.map(msg => 
             msg.id === '1' ? { ...msg, text: t.assist_welcome } : msg
         ));
+        // Also update the chat session language context if it changed
+        startNewChat(language);
     }
-  }, [t.assist_welcome, messages.length]);
+  }, [t.assist_welcome, messages.length, language]);
 
   // Speak welcome when opened
   useEffect(() => {
@@ -178,54 +180,73 @@ const Assistant: React.FC<AssistantProps> = ({
     setInputValue('');
     setIsTyping(true);
 
-    // 2. Simulate AI Delay (600ms - 1200ms)
-    const delay = Math.floor(Math.random() * 600) + 600;
-    
-    setTimeout(() => {
-       // 3. Process via Agent Service (Passing language)
-       const response = processUserMessage(text, agentContext, language);
-       
-       setIsTyping(false);
-       setAgentContext(response.updatedContext);
+    try {
+        // 2. Call Gemini
+        const response = await sendMessageToGemini(text, language);
+        
+        setIsTyping(false);
 
-       const botMsg: ChatMessage = {
-         id: (Date.now() + 1).toString(),
-         sender: 'assistant',
-         text: response.message,
-         timestamp: Date.now(),
-         options: response.options
-       };
-       setMessages(prev => [...prev, botMsg]);
-       
-       // Speak the response
-       speak(response.message);
+        // 3. Add Bot Message (if text exists)
+        if (response.text) {
+            const botMsg: ChatMessage = {
+            id: (Date.now() + 1).toString(),
+            sender: 'assistant',
+            text: response.text,
+            timestamp: Date.now(),
+            };
+            setMessages(prev => [...prev, botMsg]);
+            speak(response.text);
+        }
 
-       // 4. Perform Action if any
-       if (response.action.type === 'NAVIGATE') {
-         setTimeout(() => {
-            if (mode === 'modal') setIsOpen(false);
-            if (onClose) onClose();
-            navigate('/directions', { state: response.action.payload });
-         }, 1500); // Allow user to read message first
-       } else if (response.action.type === 'SHOW_FEES') {
-         setTimeout(() => {
-            if (mode === 'modal') setIsOpen(false);
-            if (onClose) onClose();
-            navigate('/fees', { state: response.action.payload });
-         }, 1500);
-       }
+        // 4. Handle Tool Calls
+        if (response.toolCalls && response.toolCalls.length > 0) {
+            for (const tool of response.toolCalls) {
+                if (tool.name === 'navigate') {
+                    const locationName = tool.args.locationName;
+                    
+                    setTimeout(() => {
+                        if (mode === 'modal') setIsOpen(false);
+                        if (onClose) onClose();
+                        navigate('/directions', { state: { initialQuery: locationName } });
+                    }, 1500); // Allow user to read message first
 
-    }, delay);
+                    // Send response back to Gemini
+                    await sendToolResponseToGemini('navigate', { success: true, message: `Navigating to ${locationName}` });
+                } else if (tool.name === 'showFees') {
+                    const { course, branch } = tool.args;
+                    
+                    setTimeout(() => {
+                        if (mode === 'modal') setIsOpen(false);
+                        if (onClose) onClose();
+                        navigate('/fees', { state: { initialCourse: course, initialBranch: branch } });
+                    }, 1500);
+                    
+                    await sendToolResponseToGemini('showFees', { success: true, message: `Showing fees for ${course} ${branch}` });
+                }
+            }
+        }
+    } catch (error) {
+        console.error("Error in chat:", error);
+        setIsTyping(false);
+        const errorMsg: ChatMessage = {
+            id: Date.now().toString(),
+            sender: 'assistant',
+            text: language === 'te' ? "క్షమించండి, లోపం సంభవించింది." : (language === 'hi' ? "क्षमा करें, कोई त्रुटि हुई।" : "Sorry, I encountered an error."),
+            timestamp: Date.now()
+        };
+        setMessages(prev => [...prev, errorMsg]);
+        speak(errorMsg.text);
+    }
   };
 
   const handleReset = () => {
+    startNewChat(language);
     setMessages([{ 
         id: Date.now().toString(), 
         sender: 'assistant', 
         text: t.assist_welcome, 
         timestamp: Date.now() 
     }]);
-    setAgentContext({});
   };
 
   const handleClose = () => {
@@ -262,7 +283,7 @@ const Assistant: React.FC<AssistantProps> = ({
                 <button 
                     onClick={() => setIsWakeWordListening(!isWakeWordListening)}
                     className={`p-3 rounded-full transition-colors ${isWakeWordListening ? 'bg-white/20 text-white' : 'text-white/60 hover:bg-white/10 hover:text-white'}`}
-                    title={isWakeWordListening ? "Wake Word Active (Say 'Hey Campus')" : "Wake Word Disabled"}
+                    title={isWakeWordListening ? "Wake Word Active (Say 'Hey Swecha')" : "Wake Word Disabled"}
                 >
                     <Mic size={24} className={isWakeWordListening ? "animate-pulse" : ""} />
                 </button>
@@ -352,10 +373,10 @@ const Assistant: React.FC<AssistantProps> = ({
             {/* Suggestion Chips (Context Aware) */}
             {messages.length < 3 && !isTyping && (
                 <div className="flex gap-3 mb-4 overflow-x-auto pb-1 no-scrollbar">
-                    <button onClick={() => handleSubmit(undefined, "I need navigation help")} className="whitespace-nowrap px-5 py-2.5 bg-slate-100 hover:bg-blue-50 text-slate-600 text-sm font-medium rounded-full border border-slate-200 transition-colors">
+                    <button onClick={() => handleSubmit(undefined, t.assist_chip_nav)} className="whitespace-nowrap px-5 py-2.5 bg-slate-100 hover:bg-blue-50 text-slate-600 text-sm font-medium rounded-full border border-slate-200 transition-colors">
                         {t.assist_chip_nav}
                     </button>
-                    <button onClick={() => handleSubmit(undefined, "Tell me about course fees")} className="whitespace-nowrap px-5 py-2.5 bg-slate-100 hover:bg-blue-50 text-slate-600 text-sm font-medium rounded-full border border-slate-200 transition-colors">
+                    <button onClick={() => handleSubmit(undefined, t.assist_chip_fees)} className="whitespace-nowrap px-5 py-2.5 bg-slate-100 hover:bg-blue-50 text-slate-600 text-sm font-medium rounded-full border border-slate-200 transition-colors">
                         {t.assist_chip_fees}
                     </button>
                 </div>

@@ -1,14 +1,54 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { LOCATIONS } from '../data/mockData';
-import { MapPin, Navigation, Clock, Footprints } from 'lucide-react';
+import { MapPin, Navigation, Clock, Footprints, Volume2, VolumeX } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const MobileDirections: React.FC = () => {
   const [searchParams] = useSearchParams();
   const id = searchParams.get('id');
+  const voiceParam = searchParams.get('voice');
+  
+  const { speak, stopSpeaking, isVoiceEnabled, toggleVoice } = useLanguage();
+  const [hasSyncedVoice, setHasSyncedVoice] = useState(false);
 
   const location = useMemo(() => LOCATIONS.find(l => l.id === id), [id]);
+
+  // Sync voice state from URL param on mount
+  useEffect(() => {
+      if (!hasSyncedVoice && voiceParam !== null) {
+          const shouldBeEnabled = voiceParam === 'true';
+          if (isVoiceEnabled !== shouldBeEnabled) {
+              toggleVoice();
+          }
+          setHasSyncedVoice(true);
+      }
+  }, [voiceParam, isVoiceEnabled, toggleVoice, hasSyncedVoice]);
+
+  // Auto-read directions if voice is enabled (and we just loaded)
+  useEffect(() => {
+      if (location && isVoiceEnabled && hasSyncedVoice) {
+          // Small delay to ensure user is ready
+          const timeout = setTimeout(() => {
+              readDirections();
+          }, 1000);
+          return () => clearTimeout(timeout);
+      }
+  }, [location, hasSyncedVoice]); // Only run when sync is done
+
+  const readDirections = () => {
+      if (!location) return;
+      
+      const stepsText = location.steps.map((step, idx) => 
+          `Step ${idx + 1}: ${step.instruction}. ${step.detail ? step.detail : ''}`
+      ).join('. ');
+      
+      const fullText = `Navigation to ${location.name}. Estimated time ${location.estimatedTime} minutes. ${stepsText}. You have arrived.`;
+      
+      stopSpeaking();
+      speak(fullText);
+  };
 
   if (!location) {
     return (
@@ -24,7 +64,7 @@ const MobileDirections: React.FC = () => {
   return (
     <div className="h-[100dvh] bg-white text-slate-900 font-sans flex flex-col overflow-hidden">
        {/* Mobile Header - Fixed */}
-       <div className="bg-blue-600 text-white p-4 shrink-0 shadow-md z-20">
+       <div className="bg-blue-600 text-white p-4 shrink-0 shadow-md z-20 flex justify-between items-start">
           <div className="flex items-start gap-3">
              <div className="bg-white/20 p-2 rounded-lg mt-0.5">
                 <Navigation className="text-white" size={24} />
@@ -34,6 +74,12 @@ const MobileDirections: React.FC = () => {
                  <p className="text-blue-100 text-sm mt-0.5 font-medium">{location.block}, {location.floor}</p>
              </div>
           </div>
+          <button 
+            onClick={toggleVoice}
+            className={`p-2 rounded-full transition-colors ${isVoiceEnabled ? 'bg-white/20 text-white' : 'bg-black/20 text-white/70'}`}
+          >
+            {isVoiceEnabled ? <Volume2 size={24} /> : <VolumeX size={24} />}
+          </button>
        </div>
 
        {/* Quick Stats - Fixed */}
@@ -62,6 +108,12 @@ const MobileDirections: React.FC = () => {
           <div className="absolute bottom-3 right-3 bg-black/70 text-white text-[10px] px-2 py-1 rounded backdrop-blur-md">
             Overview Map
           </div>
+          <button 
+            onClick={readDirections}
+            className="absolute bottom-3 left-3 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-full shadow-lg flex items-center gap-2 font-bold transition-transform active:scale-95 z-20 text-xs"
+          >
+             <Volume2 size={14} /> Read
+          </button>
        </div>
 
        {/* Steps Container - Scrollable */}

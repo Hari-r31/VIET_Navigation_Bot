@@ -167,8 +167,8 @@ const Fees: React.FC = () => {
                       </div>
 
                       {/* Result Grid */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 flex-1 min-h-0">
-                          <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 flex flex-col items-center justify-center text-center h-full">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 flex-1 min-h-0 overflow-y-auto">
+                          <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 flex flex-col items-center justify-center text-center h-full min-h-[120px]">
                                 <div className="bg-white p-2 rounded-full text-blue-600 mb-2 shadow-sm">
                                     <Users size={20} />
                                 </div>
@@ -176,13 +176,34 @@ const Fees: React.FC = () => {
                                 <span className="text-3xl font-black text-slate-900 mt-1">{feeData.seats}</span>
                           </div>
 
-                          <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 flex flex-col items-center justify-center text-center h-full">
+                          <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 flex flex-col items-center justify-center text-center h-full min-h-[120px]">
                                 <div className="bg-white p-2 rounded-full text-emerald-600 mb-2 shadow-sm">
                                     <CircleDollarSign size={20} />
                                 </div>
                                 <span className="text-slate-500 font-semibold uppercase text-[10px] tracking-widest">{t.fee_annual_tuition}</span>
                                 <span className="text-3xl font-black text-slate-900 mt-1">₹ {feeData.annualFee.toLocaleString('en-IN')}</span>
+                                <span className="text-[10px] text-slate-400 font-medium mt-1">(Convenor Quota)</span>
                           </div>
+
+                          {feeData.managementFee && (
+                              <div className="bg-purple-50/50 p-4 rounded-xl border border-purple-100 flex flex-col items-center justify-center text-center h-full min-h-[120px] md:col-span-2">
+                                    <div className="bg-white p-2 rounded-full text-purple-600 mb-2 shadow-sm">
+                                        <CircleDollarSign size={20} />
+                                    </div>
+                                    <span className="text-slate-500 font-semibold uppercase text-[10px] tracking-widest">Management Quota Fee</span>
+                                    <span className="text-3xl font-black text-slate-900 mt-1">₹ {feeData.managementFee.toLocaleString('en-IN')}</span>
+                              </div>
+                          )}
+
+                          {feeData.spotFee && (
+                              <div className="bg-orange-50/50 p-4 rounded-xl border border-orange-100 flex flex-col items-center justify-center text-center h-full min-h-[120px] md:col-span-2">
+                                    <div className="bg-white p-2 rounded-full text-orange-600 mb-2 shadow-sm">
+                                        <CircleDollarSign size={20} />
+                                    </div>
+                                    <span className="text-slate-500 font-semibold uppercase text-[10px] tracking-widest">Spot Admission Fee</span>
+                                    <span className="text-3xl font-black text-slate-900 mt-1">₹ {feeData.spotFee.toLocaleString('en-IN')}</span>
+                              </div>
+                          )}
                       </div>
 
                       {/* Footer Note */}

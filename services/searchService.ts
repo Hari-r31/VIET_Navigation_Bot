@@ -5,7 +5,12 @@ import { LocationData } from '../types';
 
 const options = {
   includeScore: true,
-  keys: ['name', 'aliases', 'block', 'department'],
+  keys: [
+    { name: 'name', weight: 0.6 },
+    { name: 'aliases', weight: 0.4 },
+    { name: 'department', weight: 0.3 },
+    { name: 'block', weight: 0.2 }
+  ],
   threshold: 0.4, // 0.0 is perfect match, 1.0 is match anything
   ignoreLocation: true, // Search anywhere in the string
   minMatchCharLength: 2,

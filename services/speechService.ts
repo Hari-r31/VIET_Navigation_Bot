@@ -27,33 +27,58 @@ const getVoiceForLang = (langCode: string): SpeechSynthesisVoice | null => {
   const voices = window.speechSynthesis.getVoices();
   const shortLang = langCode.split('-')[0]; // 'te', 'hi', 'en'
   
-  // Priority 1: Google voices (usually higher quality) with exact lang match
-  let voice = voices.find(v => v.lang === langCode && v.name.includes('Google'));
+  // User-requested mandatory voice keywords
+  const preferredKeywords = ['female', 'woman', 'zira', 'samantha', 'google us english'];
 
-  // Priority 2: Any voice with exact lang match
+  const isPreferred = (v: SpeechSynthesisVoice) => {
+    const name = v.name.toLowerCase();
+    return preferredKeywords.some(k => name.includes(k));
+  };
+
+  const isMale = (v: SpeechSynthesisVoice) => {
+      const name = v.name.toLowerCase();
+      return name.includes('male') && !name.includes('female');
+  };
+
+  // Priority 1: Exact Language + Preferred Voice (The "Mandatory" check)
+  // e.g. en-IN + Female
+  let voice = voices.find(v => v.lang === langCode && isPreferred(v));
+
+  // Priority 2: Same Major Language + Preferred Voice
+  // e.g. en-US + Zira (when requesting en-IN)
   if (!voice) {
-    voice = voices.find(v => v.lang === langCode);
+    voice = voices.find(v => v.lang.startsWith(shortLang) && isPreferred(v));
   }
 
-  // Priority 3: Fuzzy match (starts with 'te', 'hi', etc.) - Handles 'te_IN' vs 'te-IN'
-  if (!voice) {
-    voice = voices.find(v => v.lang.toLowerCase().startsWith(shortLang));
-  }
-
-  // Priority 4: Name match (Fallback if lang tags are missing/wrong)
-  if (!voice) {
-      if (shortLang === 'te') voice = voices.find(v => v.name.toLowerCase().includes('telugu'));
-      if (shortLang === 'hi') voice = voices.find(v => v.name.toLowerCase().includes('hindi'));
-      if (shortLang === 'en') voice = voices.find(v => v.name.toLowerCase().includes('english'));
-  }
-
-  // Priority 5: Fallback for English (if en-IN not found, try en-US or any en)
+  // Priority 3: Specific check for "Google US English" if English is requested (common female voice)
   if (!voice && shortLang === 'en') {
-     voice = voices.find(v => v.lang.startsWith('en'));
+      voice = voices.find(v => v.name.includes('Google US English'));
+  }
+
+  // Priority 4: Exact Language + NOT Male (Avoid explicit male voices)
+  if (!voice) {
+      voice = voices.find(v => v.lang === langCode && !isMale(v));
+  }
+
+  // Priority 5: Same Major Language + NOT Male
+  if (!voice) {
+      voice = voices.find(v => v.lang.startsWith(shortLang) && !isMale(v));
+  }
+
+  // Priority 6: Fallback to Google (High quality, might be male but better than robotic)
+  if (!voice) {
+    voice = voices.find(v => v.lang.startsWith(shortLang) && v.name.includes('Google'));
+  }
+
+  // Priority 7: Absolute Fallback (Any voice in that language)
+  if (!voice) {
+     voice = voices.find(v => v.lang.startsWith(shortLang));
   }
 
   return voice || null;
 };
+
+
 
 export const isVoiceAvailable = (langCode: string): boolean => {
     // Map simple lang codes to BCP 47
@@ -241,8 +266,8 @@ export const startWakeWordListener = (
           transcript.includes('hello viet') ||
           transcript.includes('hey viet') ||
           transcript.includes('campus guide') ||
-          transcript.includes('hey champ') ||
-          transcript.includes('hello champ')) {
+          transcript.includes('hey swecha') ||
+          transcript.includes('hello swecha')) {
         
         recognition.stop();
         onWake();

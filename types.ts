@@ -27,20 +27,13 @@ export interface FeeStructure {
   course: string;
   branch: string;
   seats: number;
-  annualFee: number;
+  annualFee: number; // Convenor Fee
+  managementFee?: number;
+  spotFee?: number;
   description?: string;
 }
 
 // --- Agent Types ---
-
-export enum IntentType {
-  NAVIGATE = 'NAVIGATE',
-  FEE = 'FEE',
-  GREETING = 'GREETING',
-  FAQ = 'FAQ',
-  UNKNOWN = 'UNKNOWN',
-  CLEAR = 'CLEAR'
-}
 
 export interface ChatMessage {
   id: string;
@@ -48,29 +41,5 @@ export interface ChatMessage {
   text: string;
   isTyping?: boolean;
   timestamp: number;
-  options?: string[]; // For UI chips/suggestions
-}
-
-export interface AgentContext {
-  awaitingClarification?: boolean;
-  clarificationType?: 'FEE_COURSE' | 'FEE_BRANCH' | 'LOCATION_CONFIRM' | 'LOCATION_DISAMBIGUATE' | 'NAV_CATEGORY' | 'NAV_SPECIFIC_SELECT';
-  categoryFilter?: LocationCategory; // New: Remembers if user said "Academic" vs "Admin"
-  partialFeeData?: {
-    course?: string;
-    branch?: string;
-  };
-  potentialLocation?: LocationData;
-  lastIntent?: IntentType; // For multi-turn context
-}
-
-export interface AgentAction {
-  type: 'NAVIGATE' | 'SHOW_FEES' | 'NONE';
-  payload?: any;
-}
-
-export interface AgentResponse {
-  message: string;
-  action: AgentAction;
-  updatedContext: AgentContext;
   options?: string[]; // For UI chips/suggestions
 }

@@ -19,10 +19,25 @@ interface NavState {
   department?: string;
 }
 
+// Department Metadata for Search
+const DEPARTMENT_INFO: Record<string, { name: string; aliases: string[] }> = {
+  'CSE': { name: 'Computer Science and Engineering', aliases: ['computer science', 'cs', 'comp sci', 'cse'] },
+  'ECE': { name: 'Electronics and Communication Engineering', aliases: ['electronics', 'communication', 'ec', 'ece'] },
+  'MECH': { name: 'Mechanical Engineering', aliases: ['mechanical', 'mechanic', 'me', 'mech'] },
+  'CIVIL': { name: 'Civil Engineering', aliases: ['civil', 'construction'] },
+  'EEE': { name: 'Electrical and Electronics Engineering', aliases: ['electrical', 'electronics', 'ee', 'eee'] },
+  'VLSI': { name: 'VLSI Design', aliases: ['very large scale integration', 'vlsi'] },
+  'EPS': { name: 'Electrical Power Systems', aliases: ['power systems', 'eps'] },
+  'SE': { name: 'Software Engineering', aliases: ['software', 'se'] },
+  'TE': { name: 'Thermal Engineering', aliases: ['thermal', 'te'] },
+  'CAD': { name: 'CAD/CAM', aliases: ['computer aided design', 'cad', 'cam'] },
+  'AIML': { name: 'Artificial Intelligence and Machine Learning', aliases: ['ai', 'ml', 'artificial intelligence', 'machine learning', 'aiml'] },
+};
+
 const Directions: React.FC = () => {
   const routerLoc = useLocation();
   const navigate = useNavigate();
-  const { t, language, speak, stopSpeaking } = useLanguage();
+  const { t, language, speak, stopSpeaking, isVoiceEnabled } = useLanguage();
   
   // Memoize the localized locations based on current language
   const currentLocations = useMemo(() => getLocations(language), [language]);
@@ -315,17 +330,20 @@ const Directions: React.FC = () => {
 
   // 5. Academic: Department List (based on Program)
   const renderDepartmentList = () => {
-    // Default to B.Tech departments since we removed the selection
-    const depts = getBTechDepartments();
+    const depts = navState.academicProgram === 'M.Tech' ? getMTechDepartments() : getBTechDepartments();
     
     // Fuzzy Search Logic
     let filteredDepts = depts;
     if (deptSearchQuery.trim() !== '') {
-        const fuse = new Fuse(depts.map(d => ({ name: d })), {
-            keys: ['name'],
+        const fuse = new Fuse(depts.map(d => ({ 
+            id: d, 
+            name: DEPARTMENT_INFO[d]?.name || d,
+            aliases: DEPARTMENT_INFO[d]?.aliases || []
+        })), {
+            keys: ['id', 'name', 'aliases'],
             threshold: 0.4, // Adjust for fuzziness
         });
-        filteredDepts = fuse.search(deptSearchQuery).map(result => result.item.name);
+        filteredDepts = fuse.search(deptSearchQuery).map(result => result.item.id);
     }
 
     return (
@@ -521,7 +539,16 @@ const Directions: React.FC = () => {
                         <div className="h-64 md:h-auto md:flex-1 flex flex-col relative min-h-0 shrink-0">
                              <div className="flex-1 relative bg-slate-900 overflow-hidden group">
                                 {selectedRoute.mapImage ? (
-                                    <img src={selectedRoute.mapImage} className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-700" alt="Map" />
+                                    <img 
+                                        src={selectedRoute.mapImage} 
+                                        className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-700" 
+                                        alt="Map" 
+                                        onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            target.onerror = null; // Prevent infinite loop
+                                            target.src = `https://placehold.co/600x400/e2e8f0/1e293b?text=${encodeURIComponent(selectedRoute.name)}`;
+                                        }}
+                                    />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-slate-500">
                                         <MapPin size={32} className="opacity-20"/>
@@ -578,7 +605,7 @@ const Directions: React.FC = () => {
                             <div className="flex-none p-3 border-t border-slate-200 bg-white shadow-lg z-20">
                                 <div className="bg-slate-900 text-white p-3 rounded-xl flex items-center gap-3 shadow-lg">
                                     <div className="bg-white p-1 rounded-lg flex-shrink-0">
-                                        <QRCodeSVG value={`${window.location.href.split('#')[0]}#/mobile/directions?id=${selectedRoute.id}`} size={60} />
+                                        <QRCodeSVG value={`${window.location.href.split('#')[0]}#/mobile/directions?id=${selectedRoute.id}&voice=${isVoiceEnabled}`} size={60} />
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className="font-bold text-sm text-yellow-400">Scan to Go</p>

@@ -154,7 +154,7 @@ const Home: React.FC = () => {
             {/* Text */}
             <div className="text-center max-w-lg">
                 <h3 className="text-2xl md:text-3xl font-black text-slate-800 mb-2 tracking-tight">
-                    Say "<span className="text-blue-600">Hey Champ</span>"
+                    Say "<span className="text-blue-600">Hey Swecha</span>"
                 </h3>
                 <p className="text-slate-500 font-medium text-lg">
                     or touch to start chatting
