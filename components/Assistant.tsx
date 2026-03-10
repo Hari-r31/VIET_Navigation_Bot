@@ -186,16 +186,26 @@ const Assistant: React.FC<AssistantProps> = ({
         
         setIsTyping(false);
 
-        // 3. Add Bot Message (if text exists)
-        if (response.text) {
+        // 3. Add Bot Message (if text exists or if there are tool calls)
+        let botText = response.text;
+        if (!botText && response.toolCalls && response.toolCalls.length > 0) {
+            const toolName = response.toolCalls[0].name;
+            if (toolName === 'navigate') {
+                botText = language === 'te' ? "నావిగేట్ చేస్తున్నాను..." : (language === 'hi' ? "नेविगेट कर रहा हूँ..." : "Navigating...");
+            } else if (toolName === 'showFees') {
+                botText = language === 'te' ? "ఫీజు వివరాలు చూపిస్తున్నాను..." : (language === 'hi' ? "शुल्क विवरण दिखा रहा हूँ..." : "Showing fee details...");
+            }
+        }
+
+        if (botText) {
             const botMsg: ChatMessage = {
             id: (Date.now() + 1).toString(),
             sender: 'assistant',
-            text: response.text,
+            text: botText,
             timestamp: Date.now(),
             };
             setMessages(prev => [...prev, botMsg]);
-            speak(response.text);
+            speak(botText);
         }
 
         // 4. Handle Tool Calls

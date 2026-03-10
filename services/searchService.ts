@@ -19,13 +19,38 @@ const options = {
 // Default Fuse instance for English/Fallback
 const defaultFuse = new Fuse(LOCATIONS, options);
 
+const cleanQuery = (query: string): string => {
+  let cleaned = query.toLowerCase();
+  const prefixesToRemove = [
+    'navigate to', 'take me to', 'where is', 'how to go to', 'how to reach', 
+    'directions to', 'show me', 'find', 'search for',
+    'నావిగేట్ చేయి', 'ఎక్కడ ఉంది', 'ఎలా వెళ్ళాలి',
+    'नेविगेट करें', 'कहाँ है', 'कैसे जाएं'
+  ];
+  
+  for (const prefix of prefixesToRemove) {
+    if (cleaned.startsWith(prefix)) {
+      cleaned = cleaned.replace(prefix, '').trim();
+    } else if (cleaned.includes(prefix)) {
+      cleaned = cleaned.replace(prefix, '').trim();
+    }
+  }
+  
+  // Remove trailing words like "please", "room", "block" if they are just noise, 
+  // but be careful not to remove actual names like "MBA block".
+  // For now, just removing the prefixes is usually enough.
+  return cleaned || query; // fallback to original if cleaned is empty
+};
+
 export const searchLocations = (query: string, customLocations?: LocationData[]): LocationData[] => {
   if (!query) return [];
+  
+  const cleanedQuery = cleanQuery(query);
   
   // If custom locations are provided (e.g. for a specific language), use them
   const fuseInstance = customLocations ? new Fuse(customLocations, options) : defaultFuse;
   
-  const results = fuseInstance.search(query);
+  const results = fuseInstance.search(cleanedQuery);
   return results.map(result => result.item);
 };
 

@@ -76,7 +76,8 @@ Guidelines:
 - Be concise and polite.
 - If the user's request is vague (e.g., "Where is the office?"), ask clarifying questions.
 - If the user asks for fees but doesn't specify the course or branch, ask for those details.
-- When you have enough information, CALL THE APPROPRIATE TOOL. Do not just say you will do it.
+- CRITICAL: When the user asks to navigate to a location (e.g., "navigate to canteen", "where is MBA block"), you MUST CALL the 'navigate' tool immediately. Do NOT just reply with text.
+- CRITICAL: When the user asks about fees and provides the course and branch, you MUST CALL the 'showFees' tool immediately. Do NOT just reply with text.
 - If the user greets you, greet them back warmly and ask how you can help.
 - If the user asks about something unrelated to the campus, politely steer them back to campus-related topics.
 `;
@@ -98,7 +99,7 @@ export const startNewChat = (language: string = 'en') => {
   const finalSystemInstruction = `${SYSTEM_INSTRUCTION}\n\n${langInstruction}`;
 
   chatSession = ai.chats.create({
-    model: "gemini-2.5-flash-preview",
+    model: "gemini-3-flash-preview",
     config: {
       systemInstruction: finalSystemInstruction,
       tools: tools,
