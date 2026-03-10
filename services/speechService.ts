@@ -20,138 +20,44 @@ interface Window {
 
 // --- Text to Speech (TTS) ---
 
-// Keep a reference to the utterance to prevent garbage collection
-let currentUtterance: SpeechSynthesisUtterance | null = null;
+let currentAudio: HTMLAudioElement | null = null;
 
-const getVoiceForLang = (langCode: string): SpeechSynthesisVoice | null => {
-  const voices = window.speechSynthesis.getVoices();
-  const shortLang = langCode.split('-')[0]; // 'te', 'hi', 'en'
-  
-  // User-requested mandatory voice keywords
-  const preferredKeywords = ['female', 'woman', 'zira', 'samantha', 'google us english'];
-
-  const isPreferred = (v: SpeechSynthesisVoice) => {
-    const name = v.name.toLowerCase();
-    return preferredKeywords.some(k => name.includes(k));
-  };
-
-  const isMale = (v: SpeechSynthesisVoice) => {
-      const name = v.name.toLowerCase();
-      return name.includes('male') && !name.includes('female');
-  };
-
-  // Priority 1: Exact Language + Preferred Voice (The "Mandatory" check)
-  // e.g. en-IN + Female
-  let voice = voices.find(v => v.lang === langCode && isPreferred(v));
-
-  // Priority 2: Same Major Language + Preferred Voice
-  // e.g. en-US + Zira (when requesting en-IN)
-  if (!voice) {
-    voice = voices.find(v => v.lang.startsWith(shortLang) && isPreferred(v));
-  }
-
-  // Priority 3: Specific check for "Google US English" if English is requested (common female voice)
-  if (!voice && shortLang === 'en') {
-      voice = voices.find(v => v.name.includes('Google US English'));
-  }
-
-  // Priority 4: Exact Language + NOT Male (Avoid explicit male voices)
-  if (!voice) {
-      voice = voices.find(v => v.lang === langCode && !isMale(v));
-  }
-
-  // Priority 5: Same Major Language + NOT Male
-  if (!voice) {
-      voice = voices.find(v => v.lang.startsWith(shortLang) && !isMale(v));
-  }
-
-  // Priority 6: Fallback to Google (High quality, might be male but better than robotic)
-  if (!voice) {
-    voice = voices.find(v => v.lang.startsWith(shortLang) && v.name.includes('Google'));
-  }
-
-  // Priority 7: Absolute Fallback (Any voice in that language)
-  if (!voice) {
-     voice = voices.find(v => v.lang.startsWith(shortLang));
-  }
-
-  return voice || null;
-};
-
-
-
+// Check if voice is available (Always true for server-based TTS unless server is down)
 export const isVoiceAvailable = (langCode: string): boolean => {
-    // Map simple lang codes to BCP 47
-    let targetLang = 'en-IN';
-    if (langCode === 'te') targetLang = 'te-IN';
-    if (langCode === 'hi') targetLang = 'hi-IN';
-    
-    return !!getVoiceForLang(targetLang);
+    return true; 
 };
 
 export const stopSpeaking = () => {
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel();
-    currentUtterance = null;
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio.currentTime = 0;
+    currentAudio = null;
   }
 };
 
 export const speak = (text: string, lang: 'en' | 'te' | 'hi' = 'en') => {
-  if (!('speechSynthesis' in window)) {
-    console.warn('Text-to-speech not supported');
-    return;
-  }
+  stopSpeaking(); // Stop any currently playing audio
 
-  // Cancel any current speech
-  window.speechSynthesis.cancel();
+  if (!text) return;
 
-  const utterance = new SpeechSynthesisUtterance(text);
-  currentUtterance = utterance; // Store reference
-  
-  // Map simple lang codes to BCP 47
-  let targetLang = 'en-IN';
-  if (lang === 'te') targetLang = 'te-IN';
-  if (lang === 'hi') targetLang = 'hi-IN';
-  
-  utterance.lang = targetLang;
-  
-  // Fix for cutting off: Pause and Resume to keep engine active
-  // This is a known Chrome bug workaround
-  const resumeInfinity = () => {
-      window.speechSynthesis.pause();
-      window.speechSynthesis.resume();
-      if (window.speechSynthesis.speaking) {
-          setTimeout(resumeInfinity, 10000);
-      }
-  };
+  const ttsUrl = import.meta.env.VITE_TTS_API_URL || 'http://localhost:5000';
+  const url = `${ttsUrl}/speak?text=${encodeURIComponent(text)}&lang=${lang}`;
 
-  utterance.onstart = () => {
-      resumeInfinity();
-  };
-
-  utterance.onend = () => {
-      currentUtterance = null;
-  };
-  
-  const speakWithVoice = () => {
-      const voice = getVoiceForLang(targetLang);
-      if (voice) {
-          utterance.voice = voice;
-      } else {
-          console.warn(`No voice found for ${targetLang}, using default.`);
-      }
-      window.speechSynthesis.speak(utterance);
-  };
-
-  // Load voices if not already loaded (chrome requires this sometimes)
-  if (window.speechSynthesis.getVoices().length === 0) {
-      window.speechSynthesis.onvoiceschanged = () => {
-          speakWithVoice();
-          // Remove listener to prevent memory leaks or multiple calls if we were to keep it
-          window.speechSynthesis.onvoiceschanged = null; 
-      };
-  } else {
-      speakWithVoice();
+  try {
+    const audio = new Audio(url);
+    currentAudio = audio;
+    
+    audio.play().catch(e => {
+        console.error("Error playing TTS audio:", e);
+    });
+    
+    audio.onended = () => {
+        if (currentAudio === audio) {
+            currentAudio = null;
+        }
+    };
+  } catch (e) {
+      console.error("Failed to initialize audio:", e);
   }
 };
 
