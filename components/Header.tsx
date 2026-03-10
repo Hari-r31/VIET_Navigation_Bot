@@ -10,7 +10,7 @@ const Header: React.FC = () => {
     <header className="bg-white border-b border-slate-200 px-6 py-4 shadow-sm z-30 flex justify-between items-center relative">
       <div className="flex items-center gap-3">
         <img 
-            src="https://i.imgur.com/8J5j5j5.png" 
+            src="/logo.png" 
             alt="VIET Logo" 
             className="w-12 h-12 md:w-14 md:h-14 object-contain"
             onError={(e) => {

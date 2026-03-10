@@ -38,7 +38,7 @@ const Welcome: React.FC = () => {
             <div className="flex items-center gap-4">
                 <div className="bg-white p-2 rounded-2xl shadow-md border border-slate-100">
                     <img 
-                      src="https://i.imgur.com/8J5j5j5.png" 
+                      src="/logo.png" 
                       alt="VIET Logo" 
                       className="w-10 h-10 md:w-12 md:h-12 object-contain"
                       onError={(e) => {

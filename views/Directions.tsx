@@ -454,7 +454,7 @@ const Directions: React.FC = () => {
 
       <div className="absolute inset-0 z-0">
           <img 
-            src="https://placehold.co/1920x1080/1e293b/475569?text=VIET+Campus" 
+            src="/campus_bg.png" 
             alt="Campus Background" 
             className="w-full h-full object-cover opacity-100"
           />

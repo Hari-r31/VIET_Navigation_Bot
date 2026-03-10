@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@google/genai": "^1.43.0",
+    "@google/genai": "^1.44.0",
     "fuse.js": "^7.1.0",
     "lucide-react": "^0.563.0",
     "qrcode.react": "^4.2.0",
