@@ -6,7 +6,7 @@ import { sendMessageToGemini, sendToolResponseToGemini, startNewChat } from '../
 import { ChatMessage } from '../types';
 import VoiceSearchModal from './VoiceSearchModal';
 import { useLanguage } from '../contexts/LanguageContext';
-import { startWakeWordListener } from '../services/speechService';
+
 
 interface AssistantProps {
   mode?: 'modal' | 'embedded';
@@ -29,10 +29,6 @@ const Assistant: React.FC<AssistantProps> = ({
   const [showVoiceModal, setShowVoiceModal] = useState(false);
   const [inputValue, setInputValue] = useState('');
   
-  // Wake Word State
-  const wakeWordRecognitionRef = useRef<any>(null);
-  const [isWakeWordListening, setIsWakeWordListening] = useState(true);
-
   // Conversation State
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -122,40 +118,6 @@ const Assistant: React.FC<AssistantProps> = ({
       default: return 'en-US';
     }
   };
-
-  // Wake Word Listener
-  useEffect(() => {
-    // Clean up previous listener
-    if (wakeWordRecognitionRef.current) {
-      wakeWordRecognitionRef.current.stop();
-      wakeWordRecognitionRef.current = null;
-    }
-
-    // Don't listen if modal is open or typing
-    if (showVoiceModal || isTyping || !isWakeWordListening) {
-      return;
-    }
-
-    const onWake = () => {
-      console.log('Wake word detected!');
-      speak(language === 'en' ? "Yes?" : (language === 'te' ? "చెప్పండి?" : "हाँ?"));
-      if (mode === 'modal') setIsOpen(true);
-      setShowVoiceModal(true);
-    };
-
-    const onError = (err: string) => {
-      console.warn('Wake word error:', err);
-    };
-
-    // Start listening
-    wakeWordRecognitionRef.current = startWakeWordListener(onWake, onError, getLangCode());
-
-    return () => {
-      if (wakeWordRecognitionRef.current) {
-        wakeWordRecognitionRef.current.stop();
-      }
-    };
-  }, [showVoiceModal, isTyping, isWakeWordListening, language, mode]);
 
   // Handle Voice Result from Modal
   const handleVoiceResult = (text: string) => {
@@ -290,13 +252,6 @@ const Assistant: React.FC<AssistantProps> = ({
                 </div>
             </div>
             <div className="flex items-center gap-3">
-                <button 
-                    onClick={() => setIsWakeWordListening(!isWakeWordListening)}
-                    className={`p-3 rounded-full transition-colors ${isWakeWordListening ? 'bg-white/20 text-white' : 'text-white/60 hover:bg-white/10 hover:text-white'}`}
-                    title={isWakeWordListening ? "Wake Word Active (Say 'Hey Swecha')" : "Wake Word Disabled"}
-                >
-                    <Mic size={24} className={isWakeWordListening ? "animate-pulse" : ""} />
-                </button>
                 <button 
                     onClick={handleReset}
                     className="p-3 rounded-full text-white/80 hover:bg-white/10 hover:text-white transition-colors"

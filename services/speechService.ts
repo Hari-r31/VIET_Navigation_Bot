@@ -1,33 +1,20 @@
+// speechService.ts
+// Speech services for the VIET Navigation Bot kiosk.
+//
+//  TTS : streams audio from the FastAPI /speak endpoint (gTTS)
+//  STT : records audio via MediaRecorder → POST /stt (Vosk/Whisper, fully offline)
 
-// Types for the Web Speech API
-interface SpeechRecognition extends EventTarget {
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
-  start(): void;
-  stop(): void;
-  abort(): void;
-  onstart: (event: Event) => void;
-  onend: (event: Event) => void;
-  onerror: (event: any) => void;
-  onresult: (event: any) => void;
-}
+const API_URL = (import.meta.env.VITE_TTS_API_URL as string) || 'http://localhost:5000';
 
-interface Window {
-  SpeechRecognition: any;
-  webkitSpeechRecognition: any;
-}
-
-// --- Text to Speech (TTS) ---
+// ─────────────────────────────────────────────────────────────────────────────
+//  TTS
+// ─────────────────────────────────────────────────────────────────────────────
 
 let currentAudio: HTMLAudioElement | null = null;
 
-// Check if voice is available (Always true for server-based TTS unless server is down)
-export const isVoiceAvailable = (langCode: string): boolean => {
-    return true; 
-};
+export const isVoiceAvailable = (_langCode: string): boolean => true;
 
-export const stopSpeaking = () => {
+export const stopSpeaking = (): void => {
   if (currentAudio) {
     currentAudio.pause();
     currentAudio.currentTime = 0;
@@ -35,164 +22,145 @@ export const stopSpeaking = () => {
   }
 };
 
-export const speak = (text: string, lang: 'en' | 'te' | 'hi' = 'en') => {
-  stopSpeaking(); // Stop any currently playing audio
-
+export const speak = (text: string, lang: 'en' | 'te' | 'hi' = 'en'): void => {
+  stopSpeaking();
   if (!text) return;
-
-  const ttsUrl = import.meta.env.VITE_TTS_API_URL || 'http://localhost:5000';
-  const url = `${ttsUrl}/speak?text=${encodeURIComponent(text)}&lang=${lang}`;
-
+  const url = `${API_URL}/speak?text=${encodeURIComponent(text)}&lang=${lang}`;
   try {
     const audio = new Audio(url);
     currentAudio = audio;
-    
-    audio.play().catch(e => {
-        console.error("Error playing TTS audio:", e);
-    });
-    
-    audio.onended = () => {
-        if (currentAudio === audio) {
-            currentAudio = null;
-        }
-    };
+    audio.play().catch(e => console.error('TTS play error:', e));
+    audio.onended = () => { if (currentAudio === audio) currentAudio = null; };
   } catch (e) {
-      console.error("Failed to initialize audio:", e);
+    console.error('TTS init error:', e);
   }
 };
 
-// --- Speech Recognition (STT) ---
+// ─────────────────────────────────────────────────────────────────────────────
+//  STT internals
+// ─────────────────────────────────────────────────────────────────────────────
 
+function toLang(langCode: string): 'en' | 'te' | 'hi' {
+  if (langCode.startsWith('te')) return 'te';
+  if (langCode.startsWith('hi')) return 'hi';
+  return 'en';
+}
+
+function getBestMimeType(): string {
+  const candidates = [
+    'audio/webm;codecs=opus',
+    'audio/webm',
+    'audio/ogg;codecs=opus',
+    'audio/ogg',
+  ];
+  return candidates.find(t => MediaRecorder.isTypeSupported(t)) ?? '';
+}
+
+export interface SttHandle {
+  /** Stop recording and discard — does NOT call onResult */
+  abort: () => void;
+  /** Stop recording early and submit to the STT backend */
+  stop: () => void;
+}
+
+function recordAndTranscribe(
+  lang: 'en' | 'te' | 'hi',
+  maxMs: number,
+  onResult: (text: string) => void,
+  onEnd: () => void,
+  onError: (msg: string) => void,
+): SttHandle {
+  let aborted = false;
+  let recorder: MediaRecorder | null = null;
+  let stream: MediaStream | null = null;
+  const chunks: Blob[] = [];
+
+  const releaseStream = () => stream?.getTracks().forEach(t => t.stop());
+
+  navigator.mediaDevices
+    .getUserMedia({ audio: true, video: false })
+    .then(s => {
+      if (aborted) { s.getTracks().forEach(t => t.stop()); return; }
+      stream = s;
+
+      const mimeType = getBestMimeType();
+      recorder = mimeType ? new MediaRecorder(s, { mimeType }) : new MediaRecorder(s);
+
+      recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+
+      recorder.onstop = async () => {
+        releaseStream();
+        if (aborted) { onEnd(); return; }
+
+        const blob = new Blob(chunks, { type: recorder?.mimeType || 'audio/webm' });
+        const form = new FormData();
+        form.append('audio', blob, 'recording.webm');
+        form.append('lang', lang);
+
+        try {
+          const res = await fetch(`${API_URL}/stt`, { method: 'POST', body: form });
+          if (!res.ok) {
+            const detail = await res.text().catch(() => String(res.status));
+            throw new Error(`STT server error ${res.status}: ${detail}`);
+          }
+          const data: { text: string } = await res.json();
+          const text = data.text?.trim();
+          if (text) {
+            onResult(text);
+          } else {
+            onError('No speech detected. Please try again.');
+          }
+        } catch (err: any) {
+          onError(err.message ?? 'STT request failed.');
+        }
+        onEnd();
+      };
+
+      recorder.start();
+      setTimeout(() => {
+        if (recorder?.state === 'recording') recorder.stop();
+      }, maxMs);
+    })
+    .catch(() => {
+      onError('Microphone access denied. Please allow microphone permissions.');
+      onEnd();
+    });
+
+  return {
+    abort: () => {
+      aborted = true;
+      if (recorder?.state === 'recording') recorder.stop();
+      else releaseStream();
+    },
+    stop: () => {
+      if (recorder?.state === 'recording') recorder.stop();
+    },
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Public STT API
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Record from the microphone and transcribe via the offline backend.
+ *
+ * @param onResult   Called with the final transcript.
+ * @param onEnd      Called when the entire flow finishes (success or error).
+ * @param onError    Called with a user-friendly error string.
+ * @param onInterim  Unused (Vosk/Whisper are batch). Kept for API compatibility.
+ * @param langCode   BCP-47 code e.g. 'en-US', 'te-IN', 'hi-IN'.
+ */
 export const startListening = (
   onResult: (text: string) => void,
   onEnd: () => void,
   onError: (error: string) => void,
   onInterim?: (text: string) => void,
-  langCode: string = 'en-US'
-) => {
-  const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-
-  if (!SpeechRecognition) {
-    onError('Speech recognition not supported in this browser.');
+  langCode: string = 'en-US',
+): SttHandle | null => {
+  if (!navigator.mediaDevices?.getUserMedia) {
+    onError('Microphone API not available in this browser.');
     return null;
   }
-
-  const recognition: SpeechRecognition = new SpeechRecognition();
-  recognition.continuous = false;
-  recognition.interimResults = true; // Enable interim results for real-time feedback
-  recognition.lang = langCode;
-
-  recognition.onstart = () => {
-    // console.log('Listening started...');
-  };
-
-  recognition.onresult = (event: any) => {
-    let interimTranscript = '';
-    let finalTranscript = '';
-
-    for (let i = event.resultIndex; i < event.results.length; ++i) {
-      if (event.results[i].isFinal) {
-        finalTranscript += event.results[i][0].transcript;
-      } else {
-        interimTranscript += event.results[i][0].transcript;
-      }
-    }
-
-    // Send interim results if available
-    if (interimTranscript && onInterim) {
-      onInterim(interimTranscript);
-    }
-
-    // Send final result
-    if (finalTranscript) {
-      onResult(finalTranscript);
-    }
-  };
-
-  recognition.onerror = (event: any) => {
-    // Ignore 'no-speech' error if it just means silence before end
-    if (event.error === 'no-speech') {
-        return; 
-    }
-    
-    // Ignore aborted errors (usually user clicking mic button again to stop)
-    if (event.error === 'aborted') {
-        return;
-    }
-
-    let errorMessage = event.error;
-    
-    // Map common errors to user-friendly messages
-    if (event.error === 'network') {
-        errorMessage = 'Network error. Internet is required for voice search.';
-    } else if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-        errorMessage = 'Microphone access blocked. Check permissions.';
-    }
-
-    onError(errorMessage);
-  };
-
-  recognition.onend = () => {
-    onEnd();
-  };
-
-  try {
-    recognition.start();
-    return recognition;
-  } catch (e) {
-    onError('Failed to start recognition');
-    return null;
-  }
-};
-
-export const startWakeWordListener = (
-  onWake: () => void,
-  onError: (error: string) => void,
-  langCode: string = 'en-US'
-) => {
-  const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-
-  if (!SpeechRecognition) {
-    onError('Speech recognition not supported in this browser.');
-    return null;
-  }
-
-  const recognition = new SpeechRecognition();
-  recognition.continuous = true;
-  recognition.interimResults = true;
-  recognition.lang = langCode;
-
-  recognition.onresult = (event: any) => {
-    for (let i = event.resultIndex; i < event.results.length; ++i) {
-      const transcript = event.results[i][0].transcript.toLowerCase().trim();
-      
-      // Check for wake words in both interim and final results for faster response
-      if (transcript.includes('hey campus') || 
-          transcript.includes('hello campus') || 
-          transcript.includes('hello viet') ||
-          transcript.includes('hey viet') ||
-          transcript.includes('campus guide') ||
-          transcript.includes('hey swecha') ||
-          transcript.includes('hello swecha')) {
-        
-        recognition.stop();
-        onWake();
-        return;
-      }
-    }
-  };
-
-  recognition.onerror = (event: any) => {
-      // Ignore benign errors
-      if (event.error === 'no-speech' || event.error === 'aborted') return;
-      console.warn('Wake word error:', event.error);
-  };
-
-  try {
-    recognition.start();
-    return recognition;
-  } catch (e) {
-    console.error('Failed to start wake word recognition', e);
-    return null;
-  }
+  return recordAndTranscribe(toLang(langCode), 8000, onResult, onEnd, onError);
 };
