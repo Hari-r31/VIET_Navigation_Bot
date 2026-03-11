@@ -122,8 +122,18 @@ const DICTIONARY = {
     comm: 'Communication',
     simulation: 'Simulation',
     feeSection: 'Fee Payment Section',
-    dean: 'Dean'
-  },
+    dean: 'Dean',
+    entranceStart: "Start from the Campus Entrance.",
+    walkTowardsGround: "Walk straight towards the Ground area.",
+    reachJunction: "Continue until the road junction.",
+    reachParking: "Walk towards the Students Parking.",
+    reachRoundabout: "Reach the circular roundabout.",
+    mainBlockAhead: "The Main Block is straight ahead.",
+    mbaLeft: "The MBA Block is on the left side of the parking.",
+    canteenNorth: "The Canteen is behind the parking area.",
+    messSouth: "The Mess building is on the right side road.",
+    diplomaSouth: "The Diploma Block is ahead on the right road.",
+    },
   te: {
     mainBlock: 'మెయిన్ బ్లాక్',
     mbaBlock: 'MBA బ్లాక్',
@@ -242,7 +252,17 @@ const DICTIONARY = {
     comm: 'కమ్యూనికేషన్',
     simulation: 'సిమ్యులేషన్',
     feeSection: 'ఫీజు చెల్లింపు విభాగం',
-    dean: 'డీన్'
+    dean: 'డీన్',
+    entranceStart: "క్యాంపస్ ప్రవేశ ద్వారం నుండి ప్రారంభించండి.",
+    walkTowardsGround: "గ్రౌండ్ వైపు నేరుగా నడవండి.",
+    reachJunction: "రోడ్ జంక్షన్ వరకు కొనసాగండి.",
+    reachParking: "స్టూడెంట్స్ పార్కింగ్ వైపు నడవండి.",
+    reachRoundabout: "వృత్తాకార రౌండబౌట్ వద్దకు చేరుకోండి.",
+    mainBlockAhead: "మెయిన్ బ్లాక్ నేరుగా ముందుకు ఉంటుంది.",
+    mbaLeft: "MBA బ్లాక్ పార్కింగ్ ఎడమ వైపున ఉంటుంది.",
+    canteenNorth: "క్యాంటీన్ పార్కింగ్ వెనుక భాగంలో ఉంటుంది.",
+    messSouth: "మెస్ కుడి వైపు రోడ్డులో ఉంటుంది.",
+    diplomaSouth: "డిప్లొమా బ్లాక్ కుడి వైపు రోడ్డులో ఉంటుంది.",
   },
   hi: {
     mainBlock: 'मेन ब्लॉक',
@@ -362,7 +382,17 @@ const DICTIONARY = {
     comm: 'कम्युनिकेशन',
     simulation: 'सिमुलेशन',
     feeSection: 'शुल्क भुगतान अनुभाग',
-    dean: 'डीन'
+    dean: 'डीन',
+    entranceStart: "कैंपस प्रवेश द्वार से शुरू करें।",
+    walkTowardsGround: "ग्राउंड की ओर सीधे चलें।",
+    reachJunction: "सड़क के जंक्शन तक चलते रहें।",
+    reachParking: "स्टूडेंट्स पार्किंग की ओर चलें।",
+    reachRoundabout: "गोल चक्कर तक पहुंचें।",
+    mainBlockAhead: "मेन ब्लॉक सीधे सामने है।",
+    mbaLeft: "MBA ब्लॉक पार्किंग के बाईं ओर है।",
+    canteenNorth: "कैंटीन पार्किंग के पीछे है।",
+    messSouth: "मेस दाईं ओर सड़क पर है।",
+    diplomaSouth: "डिप्लोमा ब्लॉक दाईं ओर सड़क पर है।",
   }
 };
 
@@ -437,9 +467,11 @@ export const getLocations = (lang: Language = 'en'): LocationData[] => {
       estimatedTime: 3,
       mapImage: 'images/rooms/mba-block.jpg',
       steps: [
-        { instruction: d.exitMain, icon: 'straight' },
-        { instruction: d.crossParking, icon: 'turn-right' },
-        { instruction: d.mbaAhead, icon: 'destination' }
+      { instruction: d.entranceStart, icon: 'straight' },
+      { instruction: d.walkTowardsGround, icon: 'straight' },
+      { instruction: d.reachJunction, icon: 'straight' },
+      { instruction: d.reachParking, icon: 'straight' },
+      { instruction: d.mbaLeft, icon: 'destination' }
       ]
     },
     {
@@ -454,10 +486,10 @@ export const getLocations = (lang: Language = 'en'): LocationData[] => {
       estimatedTime: 3,
       mapImage: 'images/rooms/diploma-block.jpg',
       steps: [
-        { instruction: d.exitMain, icon: 'straight' },
-        { instruction: d.exitRight.replace('Exit Main Block and ', ''), icon: 'turn-right' },
-        { instruction: d.pastParking, icon: 'straight' },
-        { instruction: d.dipRight, icon: 'destination' }
+      { instruction: d.entranceStart, icon: 'straight' },
+      { instruction: d.walkTowardsGround, icon: 'straight' },
+      { instruction: d.reachJunction, icon: 'straight' },
+      { instruction: d.diplomaSouth, icon: 'destination' }
       ]
     },
     {
@@ -471,9 +503,8 @@ export const getLocations = (lang: Language = 'en'): LocationData[] => {
       estimatedTime: 6,
       mapImage: 'images/rooms/grounds.jpg',
       steps: [
-        { instruction: d.exitRight, icon: 'turn-right' },
-        { instruction: d.pastDiploma, icon: 'straight' },
-        { instruction: d.groundLeft, icon: 'destination' }
+      { instruction: d.entranceStart, icon: 'straight' },
+      { instruction: d.walkTowardsGround, icon: 'destination' }
       ]
     },
     {
@@ -487,9 +518,10 @@ export const getLocations = (lang: Language = 'en'): LocationData[] => {
       estimatedTime: 5,
       mapImage: 'images/rooms/canteen.jpg',
       steps: [
-        { instruction: d.exitRight, icon: 'turn-right' },
-        { instruction: d.crossParking, icon: 'straight' },
-        { instruction: d.behindMba, icon: 'destination' }
+      { instruction: d.entranceStart, icon: 'straight' },
+      { instruction: d.walkTowardsGround, icon: 'straight' },
+      { instruction: d.reachParking, icon: 'straight' },
+      { instruction: d.canteenNorth, icon: 'destination' }
       ]
     },
     {
@@ -503,9 +535,10 @@ export const getLocations = (lang: Language = 'en'): LocationData[] => {
       estimatedTime: 5,
       mapImage: 'images/rooms/mess.jpg',
       steps: [
-        { instruction: d.exitRight, icon: 'turn-right' },
-        { instruction: d.pastDiploma, icon: 'straight' },
-        { instruction: d.messRight, icon: 'destination' }
+      { instruction: d.entranceStart, icon: 'straight' },
+      { instruction: d.walkTowardsGround, icon: 'straight' },
+      { instruction: d.reachJunction, icon: 'straight' },
+      { instruction: d.messSouth, icon: 'destination' }
       ]
     },
 
