@@ -605,14 +605,14 @@ const Directions: React.FC = () => {
                             <div className="flex-none p-3 border-t border-slate-200 bg-white shadow-lg z-20">
                                 <div className="bg-slate-900 text-white p-3 rounded-xl flex items-center gap-3 shadow-lg">
                                     <div className="bg-white p-1 rounded-lg flex-shrink-0">
-                                        <QRCodeSVG value={`${window.location.href.split('#')[0]}#/mobile/directions?id=${selectedRoute.id}&voice=${isVoiceEnabled}`} size={60} />
+                                        <QRCodeSVG value={`${window.location.href.split('#')[0]}#/mobile/directions?id=${selectedRoute.id}&voice=${isVoiceEnabled}&lang=${language}`} />
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className="font-bold text-sm text-yellow-400">Scan to Go</p>
                                         <p className="text-[10px] text-slate-300 leading-tight mt-0.5 mb-1">Get navigation on phone</p>
                                         <div className="bg-black/30 p-1.5 rounded border border-white/10">
                                             <p className="text-[8px] text-slate-400 font-mono break-all leading-none truncate">
-                                                {`${window.location.href.split('#')[0]}#/mobile/directions?id=${selectedRoute.id}`}
+                                                {`${window.location.href.split('#')[0]}#/mobile/directions?id=${selectedRoute.id}&voice=${isVoiceEnabled}&lang=${language}`}
                                             </p>
                                         </div>
                                     </div>

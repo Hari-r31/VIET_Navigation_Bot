@@ -6,13 +6,23 @@ import { useLanguage } from '../contexts/LanguageContext';
 
 const MobileDirections: React.FC = () => {
 const [searchParams] = useSearchParams();
+
 const id = searchParams.get('id');
 const voiceParam = searchParams.get('voice');
+const langParam = searchParams.get('lang');   // ✅ NEW
 
-const { t, speak, stopSpeaking, isVoiceEnabled, toggleVoice } = useLanguage();
+const { t, speak, stopSpeaking, isVoiceEnabled, toggleVoice, setLanguage } = useLanguage();
+
 const [hasSyncedVoice, setHasSyncedVoice] = useState(false);
 
 const location = useMemo(() => LOCATIONS.find(l => l.id === id), [id]);
+
+// ✅ Sync language from QR
+useEffect(() => {
+if (langParam) {
+setLanguage(langParam);
+}
+}, [langParam, setLanguage]);
 
 // Sync voice state from URL
 useEffect(() => {
@@ -75,7 +85,6 @@ return ( <div className="min-h-screen bg-slate-50 flex items-center justify-cent
 
 return ( <div className="h-[100dvh] bg-white text-slate-900 font-sans flex flex-col overflow-hidden">
 
-```
   {/* Header */}
   <div className="bg-blue-600 text-white p-4 shrink-0 shadow-md z-20 flex justify-between items-start">
     <div className="flex items-start gap-3">
@@ -167,7 +176,6 @@ return ( <div className="h-[100dvh] bg-white text-slate-900 font-sans flex flex-
 
         {location.steps.map((step, idx) => (
           <div key={idx} className="relative flex gap-5 pb-8 last:pb-2">
-
             <div className="relative z-10 w-10 h-10 rounded-full bg-white border-2 border-blue-600 text-blue-600 flex items-center justify-center font-bold text-sm shadow-sm flex-shrink-0">
               {idx + 1}
             </div>
