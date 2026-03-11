@@ -9,6 +9,7 @@ import { LocationData, LocationCategory } from '../types';
 import { LOCATIONS, getLocations } from '../data/mockData';
 import toast from 'react-hot-toast';
 import VoiceSearchModal from '../components/VoiceSearchModal';
+import VirtualKeyboard from '../components/VirtualKeyboard';
 import { useLanguage } from '../contexts/LanguageContext';
 
 // Types for navigation state
@@ -57,6 +58,14 @@ const Directions: React.FC = () => {
 
   // Department Search State
   const [deptSearchQuery, setDeptSearchQuery] = useState('');
+  const [showKeyboard, setShowKeyboard] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Notify App layout to hide/show the Assistant FAB
+  const setKeyboard = (val: boolean) => {
+    setShowKeyboard(val);
+    window.dispatchEvent(new CustomEvent('directions-keyboard', { detail: { open: val } }));
+  };
 
   // --- Voice Announcements for State Changes ---
   useEffect(() => {
@@ -473,19 +482,32 @@ const Directions: React.FC = () => {
         </div>
 
         {!selectedRoute && (
-            <div ref={searchContainerRef} className="w-full max-w-2xl mx-auto relative z-20 flex-none">
+            <div ref={searchContainerRef} className={`w-full max-w-2xl mx-auto relative flex-none transition-all ${showKeyboard ? 'z-[1001]' : 'z-20'}`}>
                 <div className="relative flex gap-2 shadow-xl rounded-2xl">
                     <div className="relative flex-1">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                         <input
+                            ref={searchInputRef}
                             type="text"
                             value={query}
-                            onFocus={() => setShowDropdown(true)}
+                            onFocus={() => { setShowDropdown(true); setKeyboard(true); }}
                             onChange={(e) => handleSearch(e.target.value)}
                             placeholder={t.dir_search_placeholder}
-                            className="w-full pl-12 pr-4 py-3 bg-white text-slate-900 rounded-2xl focus:ring-4 focus:ring-blue-500/50 focus:outline-none text-lg font-medium shadow-inner transition-colors"
+                            className={`w-full pl-12 pr-4 py-3 bg-white text-slate-900 rounded-2xl focus:outline-none text-lg font-medium shadow-inner transition-all ${showKeyboard ? 'ring-4 ring-blue-500 shadow-blue-500/30 shadow-lg' : 'focus:ring-4 focus:ring-blue-500/50'}`}
                         />
                     </div>
+                    <button
+                        onClick={() => setKeyboard(!showKeyboard)}
+                        className={`px-3 rounded-2xl transition-colors flex items-center justify-center ${
+                            showKeyboard ? 'bg-blue-700 text-white' : 'bg-white text-slate-600 hover:bg-slate-100'
+                        }`}
+                        title="Toggle Keyboard"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="2" y="4" width="20" height="16" rx="2"/>
+                            <path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10"/>
+                        </svg>
+                    </button>
                     <button
                         onClick={() => setShowVoiceModal(true)}
                         className="px-4 rounded-2xl transition-colors flex items-center justify-center bg-blue-600 text-white hover:bg-blue-700"
@@ -493,6 +515,18 @@ const Directions: React.FC = () => {
                         <Mic size={20} />
                     </button>
                 </div>
+                {showKeyboard && (
+                    <VirtualKeyboard
+                        onKey={(k) => handleSearch(query + k)}
+                        onBackspace={() => handleSearch(query.slice(0, -1))}
+                        onEnter={() => {
+                            if (searchResults.length > 0) handleSelectLocation(searchResults[0]);
+                            setKeyboard(false);
+                        }}
+                        onClose={() => setKeyboard(false)}
+                        label="Search Campus Location"
+                    />
+                )}
                 
                 {query.trim() !== '' && showDropdown && (
                     <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[50vh] overflow-y-auto border border-slate-200">

@@ -1,14 +1,17 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Volume2, VolumeX, Menu, X, Globe } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 
-const Header: React.FC = () => {
+interface HeaderProps {
+  menuOpen: boolean;
+  setMenuOpen: (open: boolean) => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ menuOpen, setMenuOpen }) => {
 
   const { language, setLanguage, speak, isVoiceEnabled, toggleVoice } = useLanguage();
   const navigate = useNavigate();
-
-  const [menuOpen, setMenuOpen] = useState(false);
 
   const go = (path: string) => {
     navigate(path);

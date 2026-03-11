@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { sendMessageToGemini, sendToolResponseToGemini, startNewChat } from '../services/agentService';
 import { ChatMessage } from '../types';
 import VoiceSearchModal from './VoiceSearchModal';
+import VirtualKeyboard from './VirtualKeyboard';
 import { useLanguage } from '../contexts/LanguageContext';
 
 
@@ -32,6 +33,7 @@ const Assistant: React.FC<AssistantProps> = ({
   // Conversation State
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [showKeyboard, setShowKeyboard] = useState(false);
 
   // Listen for custom event to open assistant (only in modal mode or if we want to trigger it externally)
   useEffect(() => {
@@ -334,7 +336,7 @@ const Assistant: React.FC<AssistantProps> = ({
         </div>
 
         {/* Input Area */}
-        <div className="p-6 bg-white border-t border-slate-100 shrink-0">
+        <div className={`p-6 bg-white border-t border-slate-100 shrink-0 transition-all ${showKeyboard ? 'relative z-[1001]' : ''}`}>
             {/* Suggestion Chips (Context Aware) */}
             {messages.length < 3 && !isTyping && (
                 <div className="flex gap-3 mb-4 overflow-x-auto pb-1 no-scrollbar">
@@ -357,17 +359,33 @@ const Assistant: React.FC<AssistantProps> = ({
                         type="text"
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
+                        onClick={() => setShowKeyboard(true)}
                         placeholder={t.assist_placeholder}
-                        className="w-full pl-6 pr-12 py-5 bg-slate-100 border-transparent focus:bg-white border focus:border-blue-500 rounded-full focus:outline-none transition-all text-slate-800 placeholder:text-slate-400 shadow-inner text-lg"
+                        className={`w-full pl-6 pr-20 py-5 border rounded-full focus:outline-none transition-all text-slate-800 placeholder:text-slate-400 shadow-inner text-lg ${showKeyboard ? 'bg-white border-blue-500 ring-4 ring-blue-500/30' : 'bg-slate-100 border-transparent focus:bg-white focus:border-blue-500'}`}
                         disabled={isTyping}
                     />
-                    <button
-                        type="button"
-                        onClick={() => setShowVoiceModal(true)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full transition-all duration-300 text-slate-400 hover:text-blue-600 hover:bg-blue-50"
-                    >
-                        <Mic size={24} />
-                    </button>
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                        <button
+                            type="button"
+                            onClick={() => setShowKeyboard(v => !v)}
+                            className={`p-2 rounded-full transition-all duration-300 ${
+                                showKeyboard ? 'text-blue-600 bg-blue-50' : 'text-slate-400 hover:text-blue-600 hover:bg-blue-50'
+                            }`}
+                            title="Toggle Keyboard"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="2" y="4" width="20" height="16" rx="2"/>
+                                <path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10"/>
+                            </svg>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setShowVoiceModal(true)}
+                            className="p-2 rounded-full transition-all duration-300 text-slate-400 hover:text-blue-600 hover:bg-blue-50"
+                        >
+                            <Mic size={20} />
+                        </button>
+                    </div>
                 </div>
                 <button
                     type="submit"
@@ -377,6 +395,15 @@ const Assistant: React.FC<AssistantProps> = ({
                     <Send size={24} className={isTyping ? 'opacity-0' : 'opacity-100'} />
                 </button>
             </form>
+            {showKeyboard && (
+                <VirtualKeyboard
+                    onKey={(k) => setInputValue(v => v + k)}
+                    onBackspace={() => setInputValue(v => v.slice(0, -1))}
+                    onEnter={() => { handleSubmit(); setShowKeyboard(false); }}
+                    onClose={() => setShowKeyboard(false)}
+                    label="Campus Assistant"
+                />
+            )}
         </div>
 
     </div>
