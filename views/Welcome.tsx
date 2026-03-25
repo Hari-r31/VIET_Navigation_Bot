@@ -47,8 +47,8 @@ const Welcome: React.FC = () => {
                     />
                 </div>
                 <div>
-                    <h1 className="text-lg md:text-xl font-black text-slate-900 tracking-tight leading-none">
-                        Visakha Institute of Engineering & Technology
+                    <h1 className="text-3xl md:text-3xl font-black text-slate-900 tracking-tight leading-none">
+                        Visakha Institute of Engineering & Technology [VSPT]
                     </h1>
                     <p className="text-slate-500 text-[10px] md:text-xs font-bold mt-1 tracking-wide uppercase">
                         Autonomous • NAAC 'A' Grade • AICTE Approved

@@ -45,7 +45,7 @@ const Header: React.FC<HeaderProps> = ({ menuOpen, setMenuOpen }) => {
 
           <div>
             <h1 className="text-xl font-bold text-slate-900">
-              Visakha Institute of Engineering & Technology
+              Visakha Institute of Engineering & Technology [VSPT]
             </h1>
             <p className="text-xs text-slate-500">
               Main Campus Interactive Kiosk

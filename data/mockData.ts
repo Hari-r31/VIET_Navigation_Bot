@@ -547,12 +547,19 @@ export const getLocations = (lang: Language = 'en'): LocationData[] => {
     // =================================================================
     
     // --- LEFT SIDE (Ground Floor) ---
-    createLoc('g16-hod', `G16 - ${d.hodCabin} & ${d.dean}`, 'groundFloor', 'administrative', [
+    createLoc('g16-dean', `G16 - ${d.dean} cabin`, 'groundFloor', 'administrative', [
       startInstruction,
       { instruction: d.turnLeftMain, icon: 'turn-left' },
       { instruction: t('walkRooms', { n: 4 }), icon: 'straight' },
       { instruction: t('roomLeft', { n: 5 }), icon: 'destination' }
-    ], ['dean', 'hod cabin', 'g16', 'dean office', 'head of department']),
+    ], ['dean', 'g16', 'dean office', 'head of department']),
+
+    createLoc('g16-hod', `G16 - Mech ${d.hodCabin}`, 'groundFloor', 'academic', [
+      startInstruction,
+      { instruction: d.turnLeftMain, icon: 'turn-left' },
+      { instruction: t('walkRooms', { n: 4 }), icon: 'straight' },
+      { instruction: t('roomLeft', { n: 5 }), icon: 'destination' }
+    ], ['mech class', 'g16', 'head of department'], 'MECH', 'B.Tech'),
 
     createLoc('g17-mech', `G17 - ${d.mech} ${d.classRoom}`, 'groundFloor', 'academic', [
       startInstruction,
@@ -782,7 +789,7 @@ export const getLocations = (lang: Language = 'en'): LocationData[] => {
       { instruction: t('roomLeft', { n: 5 }), icon: 'destination' }
     ], ['ladies washroom', '111', 'girls toilet', 'female washroom']),
 
-    createLoc('110-ds', `110 - ${d.dataScience}`, 'firstFloor', 'academic', [
+    createLoc('110-ds', `110 - ${d.dataScience} 3rd year`, 'firstFloor', 'academic', [
       startInstruction,
       toFirstFloor,
       { instruction: d.turnRightStairs, icon: 'turn-right' },
@@ -790,7 +797,7 @@ export const getLocations = (lang: Language = 'en'): LocationData[] => {
       { instruction: t('roomLeft', { n: 4 }), icon: 'destination' }
     ], ['data science', '110', 'ds lab', 'ds classroom'], 'CSE', 'B.Tech'),
 
-    createLoc('109-aiml', `109 - ${d.aiml}`, 'firstFloor', 'academic', [
+    createLoc('109-aiml', `109 - ${d.aiml} 3rd year`, 'firstFloor', 'academic', [
       startInstruction,
       toFirstFloor,
       { instruction: d.turnRightStairs, icon: 'turn-right' },
@@ -892,13 +899,13 @@ export const getLocations = (lang: Language = 'en'): LocationData[] => {
     // MAIN BLOCK - 2ND FLOOR
     // =================================================================
     // --- RIGHT SIDE (Bottom Row - 2nd Floor) ---
-    createLoc('216-staff', `216 - ${d.staffRoom}`, 'secondFloor', 'administrative', [
+    createLoc('216-staff', `216 - ${d.civil} ${d.hodCabin}`, 'secondFloor', 'administrative', [
       startInstruction,
       toSecondFloor,
       { instruction: d.turnRightStairs, icon: 'turn-right' },
       { instruction: t('walkRooms', { n: 4 }), icon: 'straight' },
       { instruction: t('roomRight', { n: 5 }), icon: 'destination' }
-    ], ['staff', '216', 'faculty room', 'staff room']),
+    ], ['civil hod', '216', 'hod cabin', 'civil cabin'], 'CIVIL'),
 
     createLoc('218-rnd', `218 - ${d.rnd}`, 'secondFloor', 'administrative', [
       startInstruction,
@@ -924,7 +931,7 @@ export const getLocations = (lang: Language = 'en'): LocationData[] => {
       { instruction: t('roomRight', { n: 2 }), icon: 'destination' }
     ], ['cse 2nd year c', '220', 'cse 2c'], 'CSE', 'B.Tech'),
 
-    createLoc('221-cse', `221 - ${d.cse}`, 'secondFloor', 'academic', [
+    createLoc('221-cse', `221 - ${d.aiml} 2nd year`, 'secondFloor', 'academic', [
       startInstruction,
       toSecondFloor,
       { instruction: d.turnRightStairs, icon: 'turn-right' },
@@ -987,7 +994,7 @@ export const getLocations = (lang: Language = 'en'): LocationData[] => {
       { instruction: t('roomLeft', { n: 2 }), icon: 'destination' }
     ], ['cse 2nd a', '215', 'cse 2a'], 'CSE', 'B.Tech'),
 
-    createLoc('214-ds-2', `214 - ${d.dataScience}`, 'secondFloor', 'academic', [
+    createLoc('214-ds-2', `214 - ${d.dataScience} 2nd year`, 'secondFloor', 'academic', [
       startInstruction,
       toSecondFloor,
       { instruction: d.turnRightStairs, icon: 'turn-right' },
@@ -995,7 +1002,7 @@ export const getLocations = (lang: Language = 'en'): LocationData[] => {
       { instruction: t('roomLeft', { n: 3 }), icon: 'destination' }
     ], ['data science', '214', 'ds classroom'], 'CSE', 'B.Tech'),
 
-    createLoc('213-cyber-2', `213 - ${d.cyberSecurity}`, 'secondFloor', 'academic', [
+    createLoc('213-cyber-2', `213 - ${d.cyberSecurity} 2nd year`, 'secondFloor', 'academic', [
       startInstruction,
       toSecondFloor,
       { instruction: d.turnRightStairs, icon: 'turn-right' },
